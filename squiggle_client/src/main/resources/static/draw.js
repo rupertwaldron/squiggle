@@ -1,5 +1,6 @@
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
+const fillButton = document.getElementById("fill");
 const ctx = canvas.getContext('2d');
 
 const canvasOffsetX = canvas.offsetLeft;
@@ -9,6 +10,7 @@ canvas.width = window.innerWidth - canvasOffsetX;
 canvas.height = window.innerHeight - canvasOffsetY;
 
 let isPainting = false;
+let isFilling = false;
 let lineWidth = 5;
 let startX;
 let startY;
@@ -16,6 +18,12 @@ let startY;
 toolbar.addEventListener('click', e => {
     if (e.target.id === 'clear') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        console.log('Canvas cleared');
+    }
+
+    if (e.target.id === 'fill') {
+        isFilling = !isFilling;
+        updateFillBtn();
         console.log('Canvas cleared');
     }
 });
@@ -33,17 +41,33 @@ toolbar.addEventListener('change', e => {
 
 });
 
+const updateFillBtn = () => {
+    if (isFilling) {
+        fillButton.style.backgroundColor = 'red';
+        console.log('Fill mode enabled');
+    } else {
+        fillButton.style.backgroundColor = 'grey';
+        console.log('Fill mode disabled');
+    }
+}
+
 const draw = (e) => {
     if(!isPainting) {
         return;
     }
 
     ctx.lineWidth = lineWidth;
-    ctx.lineCap = 'round';
 
+    ctx.lineCap = 'round';
     ctx.lineTo(e.clientX - canvasOffsetX, e.clientY);
+
     ctx.stroke();
     console.log('Drawing at:', e.clientX - canvasOffsetX, e.clientY);
+    if (isFilling) {
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.fill();
+        console.log('Canvas filled with color:', ctx.strokeStyle);
+    }
 }
 
 canvas.addEventListener('mousedown', (e) => {
