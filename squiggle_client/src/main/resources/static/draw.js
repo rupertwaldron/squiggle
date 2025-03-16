@@ -1,6 +1,8 @@
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
 const fillButton = document.getElementById("fill");
+const clearButton = document.getElementById("clear");
+const strokeColorInput = document.getElementById('stroke');
 const ctx = canvas.getContext('2d');
 
 const canvasOffsetX = canvas.offsetLeft;
@@ -60,14 +62,26 @@ const draw = (e) => {
 
     ctx.lineCap = 'round';
     ctx.lineTo(e.clientX - canvasOffsetX, e.clientY);
-
-    ctx.stroke();
     console.log('Drawing at:', e.clientX - canvasOffsetX, e.clientY);
+
+
     if (isFilling) {
         ctx.fillStyle = ctx.strokeStyle;
         ctx.fill();
         console.log('Canvas filled with color:', ctx.strokeStyle);
+    } else {
+        ctx.stroke();
     }
+
+    const data = {
+        x: e.clientX - canvasOffsetX,
+        y: e.clientY - canvasOffsetY,
+        lineWidth: lineWidth,
+        strokeStyle: ctx.strokeStyle,
+        isFilled: isFilling
+    };
+
+    sendMessage(JSON.stringify(data));
 }
 
 canvas.addEventListener('mousedown', (e) => {
