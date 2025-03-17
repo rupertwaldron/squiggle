@@ -1,7 +1,7 @@
-package com.ruppyrup.client.websocket;
+package com.ruppyrup.server.websocket;
 
 
-import com.ruppyrup.client.service.MessageService;
+import com.ruppyrup.server.service.MessageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;

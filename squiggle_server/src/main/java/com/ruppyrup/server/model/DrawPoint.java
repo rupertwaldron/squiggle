@@ -1,4 +1,4 @@
-package com.ruppyrup.client.model;
+package com.ruppyrup.server.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;

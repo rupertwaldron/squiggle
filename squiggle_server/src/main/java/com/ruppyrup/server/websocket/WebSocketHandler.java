@@ -1,8 +1,8 @@
-package com.ruppyrup.client.websocket;
+package com.ruppyrup.server.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ruppyrup.client.model.DrawPoint;
-import com.ruppyrup.client.service.MessageService;
+import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
