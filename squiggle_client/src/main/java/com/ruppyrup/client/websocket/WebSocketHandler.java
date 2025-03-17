@@ -36,7 +36,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         DrawPoint drawPoint = DrawPoint.fromJson(message.getPayload());
 
-        var sendingDrawPoint = new DrawPoint(drawPoint.x() + 20, drawPoint.y() + 20, drawPoint.lineWidth(), drawPoint.strokeStyle(), drawPoint.isFilled());
+        var sendingDrawPoint = DrawPoint.builder()
+                .x(drawPoint.x())
+                .y(drawPoint.y())
+                .action(drawPoint.action())
+                .lineWidth(drawPoint.lineWidth())
+                .strokeStyle(drawPoint.strokeStyle())
+                .isFilled(drawPoint.isFilled())
+                .build();
 
         messageService.sendInfo(session, sendingDrawPoint.toJson());
 

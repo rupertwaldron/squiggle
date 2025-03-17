@@ -17,6 +17,10 @@
 
 
 const receiveDraw = (message) => {
+    if (isArtist) {
+        console.warn('You are the artist, not receiving messages');
+        return;
+    }
 
     isFilling = message.isFilled;
     updateFillBtn();

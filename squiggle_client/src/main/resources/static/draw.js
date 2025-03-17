@@ -1,6 +1,7 @@
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
 const fillButton = document.getElementById("fill");
+const artistButton = document.getElementById("artist");
 const clearButton = document.getElementById("clear");
 const strokeColorInput = document.getElementById('stroke');
 const ctx = canvas.getContext('2d');
@@ -14,6 +15,7 @@ canvas.height = window.innerHeight - canvasOffsetY;
 let isPainting = false;
 let isFilling = false;
 let lineWidth = 5;
+let isArtist = false;
 let startX;
 let startY;
 
@@ -26,6 +28,12 @@ toolbar.addEventListener('click', e => {
     if (e.target.id === 'fill') {
         isFilling = !isFilling;
         updateFillBtn();
+        console.log('Canvas cleared');
+    }
+
+    if (e.target.id === 'artist') {
+        isArtist = !isArtist;
+        updateArtistBtn();
         console.log('Canvas cleared');
     }
 });
@@ -53,8 +61,18 @@ const updateFillBtn = () => {
     }
 }
 
+const updateArtistBtn = () => {
+    if (isArtist) {
+        artistButton.style.backgroundColor = 'orange';
+        console.log('Artist mode enabled');
+    } else {
+        artistButton.style.backgroundColor = 'grey';
+        console.log('Artist mode disabled');
+    }
+}
+
 const draw = (e) => {
-    if(!isPainting) {
+    if(!isPainting || !isArtist) {
         return;
     }
 
@@ -74,6 +92,7 @@ const draw = (e) => {
     }
 
     const data = {
+        action: 'mousemove',
         x: e.clientX - canvasOffsetX,
         y: e.clientY - canvasOffsetY,
         lineWidth: lineWidth,
@@ -93,9 +112,13 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mouseup', e => {
     isPainting = false;
-    ctx.stroke();
+    // ctx.stroke();
     ctx.beginPath();
     console.log('Mouse up at:', e.clientX, e.clientY);
+    const data = {
+        action: 'mouseup'
+    }
+    sendMessage(JSON.stringify(data));
 });
 
 canvas.addEventListener('mousemove', draw);
