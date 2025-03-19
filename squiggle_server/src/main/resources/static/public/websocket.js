@@ -1,7 +1,7 @@
 // ============= WebSocket Connection =============
 
 // Create a WebSocket connection
-const socket = new WebSocket('ws://localhost:8080/websocket');
+const socket = new WebSocket('wss://1d17-86-17-172-4.ngrok-free.app/websocket');
 
 // Event listener for when the connection is opened
 socket.onopen = function() {
