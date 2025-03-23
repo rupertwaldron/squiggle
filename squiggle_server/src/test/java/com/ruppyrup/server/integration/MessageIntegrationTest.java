@@ -2,6 +2,10 @@ package com.ruppyrup.server.integration;
 
 
 import com.ruppyrup.server.command.NullCommand;
+import com.ruppyrup.server.integration.config.LoggingExtension;
+import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -25,20 +29,18 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.util.List;
 
+import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(LoggingExtension.class)
 public class MessageIntegrationTest implements WebSocketClientTrait {
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final TypeFactory typeFactory = mapper.getTypeFactory();
-    ;
     private static final String PLAYER_2 = "Player2";
     private static final String PLAYER_1 = "Player1";
 
-    @Autowired
-    private SquiggleCommandFactory squiggleCommandFactory;
 
     @LocalServerPort
     private int port;
@@ -159,16 +161,9 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(drawPoint);
     }
 
+    @LoggingExtensionConfig("com.ruppyrup.server.command.NullCommand")
     @Test
     void serverReceivesInvalidMessage() throws JsonProcessingException, InterruptedException {
-        Logger commandLogger = (Logger) LoggerFactory.getLogger(NullCommand.class);
-
-        // create and start a ListAppender
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-
-        commandLogger.addAppender(listAppender);
-
         connectWebsocketClient(port);
         connectWebsocketClient(port);
 
@@ -186,6 +181,28 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         assertThat(listAppender.list.getFirst().getFormattedMessage())
                 .containsSubsequence("Null commamd triggered DrawPoint");
+    }
+
+    @LoggingExtensionConfig("com.ruppyrup.server.command.MouseUpCommand")
+    @Test
+    void serverReceivesValidCommandMessage() throws JsonProcessingException, InterruptedException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("mouseup")
+                .playerId(PLAYER_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !listAppender.list.isEmpty());
+
+        assertThat(listAppender.list.getFirst().getFormattedMessage())
+                .containsSubsequence("Sending mouse up command");
     }
 
     private static DrawPoint getMessage(String receivedMessage) throws JsonProcessingException {

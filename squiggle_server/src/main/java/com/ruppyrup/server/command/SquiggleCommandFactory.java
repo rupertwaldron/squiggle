@@ -15,7 +15,7 @@ public class SquiggleCommandFactory {
 
     public SquiggleCommandFactory(MessageService messageService) {
         this.commandMap.put("mousemove", new MouseDownCommand(messageService));
-        this.commandMap.put("mouseup", new MouseDownCommand(messageService));
+        this.commandMap.put("mouseup", new MouseUpCommand(messageService));
         this.commandMap.put("artist", new ArtistCommand(messageService));
         this.commandMap.put("not-artist", new ArtistCommand(messageService));
     }
