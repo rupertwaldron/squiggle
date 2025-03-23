@@ -16,8 +16,21 @@ let isPainting = false;
 let isFilling = false;
 let lineWidth = 5;
 let isArtist = false;
+let playerId = null;
 let startX;
 let startY;
+
+
+window.onload = function () {
+    const name = prompt("Welcome! Please enter your name:");
+    if (name) {
+        playerId = name;
+        console.log('Player Id set to:', playerId);
+    } else {
+        console.warn('Player Id not set');
+    }
+}
+
 
 toolbar.addEventListener('click', e => {
     if (e.target.id === 'clear') {
@@ -39,14 +52,19 @@ toolbar.addEventListener('click', e => {
 });
 
 toolbar.addEventListener('change', e => {
-    if(e.target.id === 'stroke') {
+    if (e.target.id === 'stroke') {
         ctx.strokeStyle = e.target.value;
         console.log('Stroke color changed to:', e.target.value);
     }
 
-    if(e.target.id === 'lineWidth') {
+    if (e.target.id === 'lineWidth') {
         lineWidth = e.target.value;
         console.log('Line width changed to:', lineWidth);
+    }
+
+    if (e.target.id === 'playerId') {
+        playerId = e.target.value;
+        console.log('Player Id changed to:', playerId);
     }
 
 });
@@ -65,8 +83,10 @@ const updateArtistBtn = () => {
     if (isArtist) {
         artistButton.style.backgroundColor = 'orange';
         console.log('Artist mode enabled');
+        sendMessage(JSON.stringify({action: 'artist', playerId: playerId}));
     } else {
         artistButton.style.backgroundColor = 'grey';
         console.log('Artist mode disabled');
+        sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId}));
     }
 }

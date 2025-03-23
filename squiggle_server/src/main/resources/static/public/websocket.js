@@ -11,18 +11,18 @@ socket.onopen = function() {
 // Event listener for incoming messages
 
 socket.onmessage = function(event) {
-    if (isArtist) {
-        console.warn('You are the artist, not receiving messages');
-        return;
-    }
     const data = JSON.parse(event.data);
-    console.log('Received data:', data[0]);
+    console.log('Received data:', data);
     if (data.action === 'mouseup') {
         // ctx.stroke();
         ctx.beginPath();
         console.log('Mouse up event received');
     } else if (data.action === 'mousemove') {
         receiveDraw(data);
+    } else if (data.action === 'artist') {
+        console.log('Artist is now:', data.playerId);
+    } else if (data.action === 'not-artist') {
+        console.log('Artist is now not:', data.playerId);
     }
 };
 
@@ -38,10 +38,6 @@ socket.onclose = function() {
 
 // Function to send a message when the button is clicked
 function sendMessage(message) {
-    if (!isArtist) {
-        console.warn('You are not the artist');
-        return;
-    }
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(message);
         console.log('Sent:', message);

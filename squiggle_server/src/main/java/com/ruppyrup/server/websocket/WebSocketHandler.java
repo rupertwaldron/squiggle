@@ -1,6 +1,7 @@
 package com.ruppyrup.server.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruppyrup.server.command.SquiggleCommandFactory;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +13,11 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Slf4j
 public class WebSocketHandler extends TextWebSocketHandler {
     private final MessageService messageService;
+    private final SquiggleCommandFactory squiggleCommandFactory;
 
-    public WebSocketHandler(MessageService messageService) {
-        super();
+    public WebSocketHandler(MessageService messageService, SquiggleCommandFactory squiggleCommandFactory) {
         this.messageService = messageService;
+        this.squiggleCommandFactory = squiggleCommandFactory;
     }
 
     @Override
@@ -36,17 +38,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         DrawPoint drawPoint = DrawPoint.fromJson(message.getPayload());
 
-        var sendingDrawPoint = DrawPoint.builder()
-                .x(drawPoint.x())
-                .y(drawPoint.y())
-                .action(drawPoint.action())
-                .lineWidth(drawPoint.lineWidth())
-                .strokeStyle(drawPoint.strokeStyle())
-                .isFilled(drawPoint.isFilled())
-                .build();
-
-        messageService.sendInfo(session, sendingDrawPoint.toJson());
-
-        log.info("Sending draw point {} on thread {}", sendingDrawPoint, Thread.currentThread());
+        squiggleCommandFactory.getCommand(drawPoint.action()).execute(session, drawPoint);
     }
 }

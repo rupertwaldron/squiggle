@@ -1,6 +1,7 @@
 package com.ruppyrup.server.websocket;
 
 
+import com.ruppyrup.server.command.SquiggleCommandFactory;
 import com.ruppyrup.server.service.MessageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +20,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new WebSocketHandler(messageService()),
+        registry.addHandler(new WebSocketHandler(messageService(), squiggleCommandFactory()),
                 "/websocket").setAllowedOrigins("*");
     }
 
@@ -31,5 +32,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Bean
     public MessageService messageService() {
         return new MessageService(virtualThreadExecutor());
+    }
+
+    @Bean
+    public SquiggleCommandFactory squiggleCommandFactory() {
+        return new SquiggleCommandFactory(messageService());
     }
 }

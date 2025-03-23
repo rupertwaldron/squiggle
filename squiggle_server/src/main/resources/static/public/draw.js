@@ -21,6 +21,7 @@ const draw = (e) => {
 
     const data = {
         action: 'mousemove',
+        playerId: playerId,
         x: e.clientX - canvasOffsetX,
         y: e.clientY - canvasOffsetY,
         lineWidth: lineWidth,
@@ -44,7 +45,8 @@ canvas.addEventListener('mouseup', e => {
     ctx.beginPath();
     console.log('Mouse up at:', e.clientX, e.clientY);
     const data = {
-        action: 'mouseup'
+        action: 'mouseup',
+        playerId: playerId,
     }
     sendMessage(JSON.stringify(data));
 });
