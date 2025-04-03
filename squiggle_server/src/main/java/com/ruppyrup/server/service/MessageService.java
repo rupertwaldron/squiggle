@@ -23,7 +23,7 @@ public class MessageService {
         if (sessions.isEmpty()) return;
 
         for (WebSocketSession session : sessions) {
-            if (session == receivingSession) continue;
+            if (session == receivingSession && !info.contains("winner")) continue;
             // Don't send to the session that sent the message
             executor.submit(() -> {
                 safeSend(session, info);

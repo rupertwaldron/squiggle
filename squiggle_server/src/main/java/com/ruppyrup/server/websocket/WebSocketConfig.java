@@ -2,6 +2,7 @@ package com.ruppyrup.server.websocket;
 
 
 import com.ruppyrup.server.command.SquiggleCommandFactory;
+import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +37,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Bean
     public SquiggleCommandFactory squiggleCommandFactory() {
-        return new SquiggleCommandFactory(messageService());
+        return new SquiggleCommandFactory(messageService(), wordRepository());
+    }
+
+    @Bean
+    public WordRepository wordRepository() {
+        return new WordRepository();
     }
 }

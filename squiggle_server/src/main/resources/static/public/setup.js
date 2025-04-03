@@ -4,6 +4,7 @@ const fillButton = document.getElementById("fill");
 const artistButton = document.getElementById("artist");
 const clearButton = document.getElementById("clear");
 const strokeColorInput = document.getElementById('stroke');
+const guessWordInput = document.getElementById('guessWord');
 const ctx = canvas.getContext('2d');
 
 const canvasOffsetX = canvas.offsetLeft;
@@ -17,6 +18,7 @@ let isFilling = false;
 let lineWidth = 5;
 let isArtist = false;
 let playerId = null;
+let guessWord = null;
 let startX;
 let startY;
 
@@ -67,6 +69,12 @@ toolbar.addEventListener('change', e => {
         console.log('Player Id changed to:', playerId);
     }
 
+    if (e.target.id === 'guessWord') {
+        guessWord = e.target.value;
+        sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId, guessWord: guessWord}));
+        console.log('Guess word is:', guessWord);
+    }
+
 });
 
 const updateFillBtn = () => {
@@ -80,13 +88,15 @@ const updateFillBtn = () => {
 }
 
 const updateArtistBtn = () => {
-    if (isArtist) {
+    if (isArtist && guessWord) {
         artistButton.style.backgroundColor = 'orange';
         console.log('Artist mode enabled');
-        sendMessage(JSON.stringify({action: 'artist', playerId: playerId}));
+        sendMessage(JSON.stringify({action: 'artist', playerId: playerId, guessWord: guessWord}));
     } else {
         artistButton.style.backgroundColor = 'grey';
         console.log('Artist mode disabled');
+        guessWord = null;
+        guessWordInput.value = '';
         sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId}));
     }
 }

@@ -8,12 +8,17 @@ import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
 import org.awaitility.Duration;
+import org.json.JSONException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -28,6 +33,9 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final String PLAYER_2 = "Player2";
     private static final String PLAYER_1 = "Player1";
+
+    @Autowired
+    private WordRepository wordRepository;
 
 
     @LocalServerPort
@@ -213,6 +221,57 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         assertThat(listAppender.list.getFirst().getFormattedMessage())
                 .containsSubsequence("Sending artist change");
+    }
+
+
+    @Test
+    void serverReceivesGuessWordWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("artist")
+                .guessWord("Monkey")
+                .playerId(PLAYER_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> wordRepository.getGuessWord().equals("Monkey"));
+    }
+
+    @Test
+    void serverReceivesWinnerStatusWhenWordGuessed() throws JsonProcessingException, InterruptedException, JSONException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        wordRepository.setGuessWord("Monkey");
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("not-artist")
+                .guessWord("Monkey")
+                .playerId(PLAYER_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> recievedMessages.size() == 2);
+
+        JSONAssert.assertEquals(
+                "{\"action\":\"winner\",\"playerId\":\"Player1\",\"guessWord\":\"Monkey\"}",
+                recievedMessages.getFirst(),
+                JSONCompareMode.LENIENT);
+
+        JSONAssert.assertEquals(
+                "{\"action\":\"winner\",\"playerId\":\"Player1\",\"guessWord\":\"Monkey\"}",
+                recievedMessages.getLast(),
+                JSONCompareMode.LENIENT);
     }
 
 

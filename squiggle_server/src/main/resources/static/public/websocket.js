@@ -25,6 +25,12 @@ socket.onmessage = function(event) {
         updateArtistBtn()
     } else if (data.action === 'not-artist') {
         console.log('Artist is now not:', data.playerId);
+    } else if (data.action === 'winner') {
+        if (playerId === data.playerId) {
+            console.log('You are the winner:', data.playerId);
+        } else {
+            console.log('You are a looser, winner is:', data.playerId);
+        }
     }
 };
 

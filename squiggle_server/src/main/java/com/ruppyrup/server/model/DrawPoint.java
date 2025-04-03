@@ -8,7 +8,7 @@ import lombok.Builder;
 
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record DrawPoint(String action, String playerId, int x, int y, String lineWidth, String strokeStyle, boolean isFilled) {
+public record DrawPoint(String action, String playerId, int x, int y, String lineWidth, String strokeStyle, boolean isFilled, String guessWord) {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public String toJson() throws JsonProcessingException {
