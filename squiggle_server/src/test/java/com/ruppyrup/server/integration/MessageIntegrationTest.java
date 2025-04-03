@@ -193,6 +193,29 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .containsSubsequence("Sending mouse up command");
     }
 
+    @LoggingExtensionConfig("com.ruppyrup.server.command.ArtistCommand")
+    @Test
+    void serverReceivesNotArtistCommantWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("artist")
+                .playerId(PLAYER_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !listAppender.list.isEmpty());
+
+        assertThat(listAppender.list.getFirst().getFormattedMessage())
+                .containsSubsequence("Sending artist change");
+    }
+
+
     private static DrawPoint getMessage(String receivedMessage) throws JsonProcessingException {
         return mapper.readValue(receivedMessage, DrawPoint.class);
     }

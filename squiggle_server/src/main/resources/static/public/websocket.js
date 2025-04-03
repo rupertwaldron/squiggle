@@ -21,6 +21,8 @@ socket.onmessage = function(event) {
         receiveDraw(data);
     } else if (data.action === 'artist') {
         console.log('Artist is now:', data.playerId);
+        isArtist = false;
+        updateArtistBtn()
     } else if (data.action === 'not-artist') {
         console.log('Artist is now not:', data.playerId);
     }
