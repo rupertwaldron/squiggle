@@ -36,6 +36,7 @@ public class LoggingExtension implements BeforeAllCallback, AfterAllCallback, Te
   public void afterEach(final ExtensionContext context) throws Exception {
     log.info("after :: " + listAppender.list);
     listAppender.stop();
+    listAppender.list.clear();
     listAppender.clearAllFilters();
   }
 
@@ -52,7 +53,12 @@ public class LoggingExtension implements BeforeAllCallback, AfterAllCallback, Te
   @Override
   public void beforeEach(final ExtensionContext context) throws Exception {
     LoggingExtensionConfig config = context.getElement().get().getAnnotation(LoggingExtensionConfig.class);
-    Class<?> testClass = Class.forName(config.value());
+    Class<?> testClass;
+    if (config == null) {
+      testClass = context.getRequiredTestClass();
+    } else {
+      testClass = Class.forName(config.value());
+    }
     logger = (Logger) LoggerFactory.getLogger(testClass);
     listAppender.start();
     logger.addAppender(listAppender);

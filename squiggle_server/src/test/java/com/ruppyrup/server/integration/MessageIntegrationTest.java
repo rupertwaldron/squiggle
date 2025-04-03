@@ -1,20 +1,10 @@
 package com.ruppyrup.server.integration;
 
 
-import com.ruppyrup.server.command.NullCommand;
-import com.ruppyrup.server.integration.config.LoggingExtension;
-import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.LoggerFactory;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.ruppyrup.server.command.SquiggleCommandFactory;
+import com.ruppyrup.server.integration.config.LoggingExtension;
+import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
@@ -23,11 +13,9 @@ import lombok.SneakyThrows;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-
-import java.util.List;
 
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
@@ -63,7 +51,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         connectWebsocketClient(port);
 
         DrawPoint drawPoint = DrawPoint.builder()
-                .action("draw")
+                .action("mousemove")
                 .playerId(PLAYER_1)
                 .x(1000)
                 .y(0)
@@ -92,7 +80,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         connectWebsocketClient(port);
 
         DrawPoint drawPoint = DrawPoint.builder()
-                .action("mouseUp")
+                .action("mouseup")
                 .playerId(PLAYER_1)
                 .build();
 
