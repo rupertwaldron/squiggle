@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
+import com.ruppyrup.server.utils.WordMasker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -27,7 +28,7 @@ public class ArtistCommand implements SquiggleCommand {
         String guessWord = drawPoint.guessWord();
         wordRepository.setGuessWord(guessWord);
 
-        String maskedWord = getMaskedWord(guessWord.length());
+        String maskedWord = WordMasker.getMaskedWord(guessWord, 0);
 
         DrawPoint drawPointToSend = DrawPoint.builder()
                 .action(drawPoint.action())
@@ -42,14 +43,5 @@ public class ArtistCommand implements SquiggleCommand {
         }
 
         log.info("Sending artist change {} on thread {}", drawPoint, Thread.currentThread());
-    }
-
-    private static String getMaskedWord(int maskedWordLength) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        IntStream.range(0, maskedWordLength)
-                .forEach(i -> stringBuilder.append("*"));
-
-        return stringBuilder.toString();
     }
 }

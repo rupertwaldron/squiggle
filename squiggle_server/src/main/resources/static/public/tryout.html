@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guess the Word</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+            position: relative;
+        }
+
+        #letter-boxes {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .box {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div id="letter-boxes"></div>
+
+<script>
+    const word = "APPLE";
+    const container = document.getElementById("letter-boxes");
+
+    for (let i = 0; i < word.length; i++) {
+        const box = document.createElement("div");
+        box.classList.add("box");
+        box.textContent = ""; // keep empty initially
+        container.appendChild(box);
+    }
+</script>
+
+</body>
+</html>

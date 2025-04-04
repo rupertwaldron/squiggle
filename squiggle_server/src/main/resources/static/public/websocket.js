@@ -23,6 +23,7 @@ socket.onmessage = function(event) {
         console.log('Artist is now:', data.playerId);
         isArtist = false;
         updateArtistBtn()
+        guessBoxes(data.guessWord)
     } else if (data.action === 'not-artist') {
         console.log('Artist is now not:', data.playerId);
     } else if (data.action === 'winner') {

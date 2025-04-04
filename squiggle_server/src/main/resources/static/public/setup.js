@@ -5,6 +5,7 @@ const artistButton = document.getElementById("artist");
 const clearButton = document.getElementById("clear");
 const strokeColorInput = document.getElementById('stroke');
 const guessWordInput = document.getElementById('guessWord');
+const letterBoxes = document.getElementById("letter-boxes");
 const ctx = canvas.getContext('2d');
 
 const canvasOffsetX = canvas.offsetLeft;

@@ -3,6 +3,7 @@ package com.ruppyrup.server.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ruppyrup.server.command.NotArtistCommand;
 import com.ruppyrup.server.integration.config.LoggingExtension;
 import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
@@ -19,15 +20,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ApplicationContext;
+
+import java.util.Arrays;
 
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=5"})
 @ExtendWith(LoggingExtension.class)
 public class MessageIntegrationTest implements WebSocketClientTrait {
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -36,6 +41,9 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @Autowired
     private WordRepository wordRepository;
+
+    @Value("${reveal.count}")
+    private int revealCount;
 
 
     @LocalServerPort
@@ -51,6 +59,19 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
     @SneakyThrows
     private void closeSession(WebsocketClientEndpoint clientEndPoint) {
         clientEndPoint.getUserSession().close(new CloseReason(NORMAL_CLOSURE, "Finished test"));
+    }
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Test
+    void listAllBeans() {
+        String[] beanNames = applicationContext.getBeanDefinitionNames();
+        Arrays.sort(beanNames); // optional: sort alphabetically
+
+        for (String name : beanNames) {
+            System.out.println(name);
+        }
     }
 
     @Test
@@ -294,6 +315,36 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         JSONAssert.assertEquals(
                 "{\"action\":\"artist\",\"playerId\":\"Player1\",\"x\":0,\"y\":0,\"isFilled\":false,\"guessWord\":\"******\"}",
+                recievedMessages.getFirst(),
+                JSONCompareMode.LENIENT);
+    }
+
+    @Test
+    void participantReceivesMaskedWordWithRevealedCharsAfterXGuesses() throws JsonProcessingException, InterruptedException, JSONException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        System.out.println(applicationContext.getBean(NotArtistCommand.class));
+
+        wordRepository.setGuessWord("Monkey");
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("not-artist")
+                .guessWord("Invalid")
+                .playerId(PLAYER_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        for (int i = 0; i < revealCount; i++) {
+            clientEndPoints.getFirst().sendMessage(message);
+        }
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> recievedMessages.size() == 1);
+
+        JSONAssert.assertEquals(
+                "{\"action\":\"reveal\",\"playerId\":\"Player1\",\"x\":0,\"y\":0,\"isFilled\":false,\"guessWord\":\"*****y\"}",
                 recievedMessages.getFirst(),
                 JSONCompareMode.LENIENT);
     }
