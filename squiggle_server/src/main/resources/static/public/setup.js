@@ -36,8 +36,7 @@ window.onload = function () {
 
 toolbar.addEventListener('click', e => {
     if (e.target.id === 'clear') {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        console.log('Canvas cleared');
+        clearDrawing();
     }
 
     if (e.target.id === 'fill') {
@@ -52,7 +51,6 @@ toolbar.addEventListener('click', e => {
         console.log('Canvas cleared');
     }
 });
-
 toolbar.addEventListener('change', e => {
     if (e.target.id === 'stroke') {
         ctx.strokeStyle = e.target.value;
@@ -76,6 +74,11 @@ toolbar.addEventListener('change', e => {
     }
 
 });
+
+const clearDrawing = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log('Canvas cleared');
+}
 
 const updateFillBtn = () => {
     if (isFilling) {

@@ -28,9 +28,14 @@ socket.onmessage = function(event) {
     } else if (data.action === 'winner') {
         if (playerId === data.playerId) {
             console.log('You are the winner:', data.playerId);
+        } else if (isArtist) {
+            isArtist = false;
+            updateArtistBtn();
+            console.log('This winner is:', data.playerId);
         } else {
             console.log('You are a looser, winner is:', data.playerId);
         }
+        clearDrawing();
     }
 };
 

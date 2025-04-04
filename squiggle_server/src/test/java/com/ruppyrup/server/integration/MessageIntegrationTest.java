@@ -274,6 +274,30 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 JSONCompareMode.LENIENT);
     }
 
+    @Test
+    void participantReceivesMaskedGuessWord() throws JsonProcessingException, InterruptedException, JSONException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("artist")
+                .guessWord("Monkey")
+                .playerId(PLAYER_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> recievedMessages.size() == 1);
+
+        JSONAssert.assertEquals(
+                "{\"action\":\"artist\",\"playerId\":\"Player1\",\"x\":0,\"y\":0,\"isFilled\":false,\"guessWord\":\"******\"}",
+                recievedMessages.getFirst(),
+                JSONCompareMode.LENIENT);
+    }
+
 
     private static DrawPoint getMessage(String receivedMessage) throws JsonProcessingException {
         return mapper.readValue(receivedMessage, DrawPoint.class);
