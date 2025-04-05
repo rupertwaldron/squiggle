@@ -4,6 +4,7 @@ package com.ruppyrup.server.websocket;
 import com.ruppyrup.server.command.SquiggleCommandFactory;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -18,6 +19,8 @@ import java.util.concurrent.Executors;
 @EnableWebSocket
 @EnableScheduling
 public class WebSocketConfig implements WebSocketConfigurer {
+
+    @Value("${reveal.count}") int revealCount;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -37,7 +40,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Bean
     public SquiggleCommandFactory squiggleCommandFactory() {
-        return new SquiggleCommandFactory(messageService(), wordRepository());
+        return new SquiggleCommandFactory(messageService(), wordRepository(), revealCount);
     }
 
     @Bean

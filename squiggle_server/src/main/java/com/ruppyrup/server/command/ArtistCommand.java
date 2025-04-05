@@ -6,13 +6,9 @@ import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
 import com.ruppyrup.server.utils.WordMasker;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.stream.IntStream;
-
 @Slf4j
-@Component
 public class ArtistCommand implements SquiggleCommand {
 
     private final MessageService messageService;

@@ -319,8 +319,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
 
-        System.out.println(applicationContext.getBean(NotArtistCommand.class));
-
         String guessWord = "Monkey";
         wordRepository.setGuessWord(guessWord);
 
