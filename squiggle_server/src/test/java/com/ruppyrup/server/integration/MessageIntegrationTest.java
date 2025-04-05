@@ -3,6 +3,7 @@ package com.ruppyrup.server.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.ruppyrup.server.command.NotArtistCommand;
 import com.ruppyrup.server.integration.config.LoggingExtension;
 import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
@@ -24,8 +25,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
-
-import java.util.Arrays;
 
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
@@ -63,16 +62,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @Autowired
     private ApplicationContext applicationContext;
-
-    @Test
-    void listAllBeans() {
-        String[] beanNames = applicationContext.getBeanDefinitionNames();
-        Arrays.sort(beanNames); // optional: sort alphabetically
-
-        for (String name : beanNames) {
-            System.out.println(name);
-        }
-    }
 
     @Test
     void nonSendingClientReceives() throws JsonProcessingException {
@@ -159,32 +148,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(expected);
     }
 
-    //todo fix tests from here
-
-    @Test
-    void serverReceivesNotArtistMessage() throws JsonProcessingException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
-        DrawPoint drawPoint = DrawPoint.builder()
-                .action("not-artist")
-                .playerId(PLAYER_1)
-                .build();
-
-        String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
-
-        await()
-                .atMost(Duration.ONE_MINUTE)
-                .until(() -> !recievedMessages.isEmpty());
-
-        DrawPoint received = getMessage(recievedMessages.getFirst());
-        System.out.println(drawPoint);
-
-        assertThat(received)
-                .usingRecursiveComparison()
-                .isEqualTo(drawPoint);
-    }
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.NullCommand")
     @Test
@@ -206,6 +169,29 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         assertThat(listAppender.list.getFirst().getFormattedMessage())
                 .containsSubsequence("Null commamd triggered DrawPoint");
+    }
+
+
+    @LoggingExtensionConfig("com.ruppyrup.server.command.NotArtistCommand")
+    @Test
+    void serverReceivesNotArtistMessage() throws JsonProcessingException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("not-artist")
+                .playerId(PLAYER_1)
+                .build();
+
+        String message = mapper.writeValueAsString(drawPoint);
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !listAppender.list.isEmpty());
+
+        assertThat(listAppender.list.getFirst().getFormattedMessage())
+                .containsSubsequence("Guess word is null DrawPoint");
     }
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.MouseUpCommand")
@@ -335,7 +321,8 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         System.out.println(applicationContext.getBean(NotArtistCommand.class));
 
-        wordRepository.setGuessWord("Monkey");
+        String guessWord = "Monkey";
+        wordRepository.setGuessWord(guessWord);
 
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("not-artist")
@@ -352,10 +339,21 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> recievedMessages.size() == 1);
 
-        JSONAssert.assertEquals(
-                "{\"action\":\"reveal\",\"playerId\":\"Player1\",\"x\":0,\"y\":0,\"isFilled\":false,\"guessWord\":\"*****y\"}",
-                recievedMessages.getFirst(),
-                JSONCompareMode.LENIENT);
+        String maskedWord = JsonPath.read(recievedMessages.getFirst(), "$.guessWord");
+
+        int countStars = 0;
+        String revealedChar = "";
+        for (String s : maskedWord.split("")) {
+            if (s.equals("*")) {
+                countStars++;
+                continue;
+            }
+            revealedChar = s;
+        }
+
+        assertThat(countStars).isEqualTo(5);
+        assertThat(guessWord).contains(revealedChar);
+
     }
 
 

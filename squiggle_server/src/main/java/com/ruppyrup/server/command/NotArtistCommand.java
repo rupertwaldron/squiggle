@@ -27,10 +27,13 @@ public class NotArtistCommand implements SquiggleCommand {
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        log.info("Not Artist class name {}", this);
-        if (wordRepository.getGuessWord() == null) return;
+        if (wordRepository.getGuessWord() == null) {
+            log.info("Guess word is null {} on thread {}", drawPoint, Thread.currentThread());
+            return;
+        }
 
         if (wordRepository.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
+            log.info("Correct guess {} on thread {}", drawPoint, Thread.currentThread());
             DrawPoint winnerDrawPoint = DrawPoint.builder()
                     .action("winner")
                     .playerId(drawPoint.playerId())
@@ -46,6 +49,7 @@ public class NotArtistCommand implements SquiggleCommand {
         } else {
             wordRepository.incrementGuessCount();
             if (wordRepository.getGuessCount() >= 4) {
+                log.info("Reveal another letter {} on thread {}", drawPoint, Thread.currentThread());
                 DrawPoint drawPointToSend = DrawPoint.builder()
                         .action("reveal")
                         .playerId(drawPoint.playerId())
@@ -59,7 +63,5 @@ public class NotArtistCommand implements SquiggleCommand {
                 }
             }
         }
-
-        log.info("Sending artist change {} on thread {}", drawPoint, Thread.currentThread());
     }
 }
