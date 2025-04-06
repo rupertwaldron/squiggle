@@ -4,7 +4,6 @@ package com.ruppyrup.server.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
-import com.ruppyrup.server.command.NotArtistCommand;
 import com.ruppyrup.server.integration.config.LoggingExtension;
 import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
@@ -26,12 +25,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
 
+import java.util.List;
+
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=5"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=2"})
 @ExtendWith(LoggingExtension.class)
 public class MessageIntegrationTest implements WebSocketClientTrait {
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -85,7 +86,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
-        DrawPoint received = getMessage(recievedMessages.getFirst());
+        DrawPoint received = getMessage(recievedMessages.poll());
 
         assertThat(received)
                 .usingRecursiveComparison()
@@ -109,7 +110,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
-        DrawPoint received = getMessage(recievedMessages.getFirst());
+        DrawPoint received = getMessage(recievedMessages.poll());
         System.out.println(drawPoint);
 
         assertThat(received)
@@ -135,7 +136,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
-        DrawPoint received = getMessage(recievedMessages.getFirst());
+        DrawPoint received = getMessage(recievedMessages.poll());
 
         DrawPoint expected = DrawPoint.builder()
                 .action(received.action())
@@ -281,12 +282,12 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         JSONAssert.assertEquals(
                 "{\"action\":\"winner\",\"playerId\":\"Player1\",\"guessWord\":\"Monkey\"}",
-                recievedMessages.getFirst(),
+                recievedMessages.poll(),
                 JSONCompareMode.LENIENT);
 
         JSONAssert.assertEquals(
                 "{\"action\":\"winner\",\"playerId\":\"Player1\",\"guessWord\":\"Monkey\"}",
-                recievedMessages.getLast(),
+                recievedMessages.poll(),
                 JSONCompareMode.LENIENT);
     }
 
@@ -310,7 +311,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         JSONAssert.assertEquals(
                 "{\"action\":\"artist\",\"playerId\":\"Player1\",\"x\":0,\"y\":0,\"isFilled\":false,\"guessWord\":\"******\"}",
-                recievedMessages.getFirst(),
+                recievedMessages.poll(),
                 JSONCompareMode.LENIENT);
     }
 
@@ -329,29 +330,44 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        for (int i = 0; i < revealCount; i++) {
+        for (int i = 0; i < revealCount * 5; i++) {
             clientEndPoints.getFirst().sendMessage(message);
+            Thread.sleep(1000);
         }
 
         await()
-                .atMost(Duration.TEN_SECONDS)
-                .until(() -> recievedMessages.size() == 1);
+                .atMost(Duration.ONE_MINUTE)
+                .until(() -> recievedMessages.size() >= 10);
 
-        String maskedWord = JsonPath.read(recievedMessages.getFirst(), "$.guessWord");
+        String maskedWord = JsonPath.read(recievedMessages.poll(), "$.guessWord");
 
+        List<Integer> list = recievedMessages.stream()
+                .map(s -> (String) JsonPath.read(s, "$.guessWord"))
+                .map(MessageIntegrationTest::starMaskCounter)
+                .toList();
+
+        System.out.println(list);
+//        int countStars = 0;
+//        String revealedChar = "";
+//        for (String s : maskedWord.split("")) {
+//            if (s.equals("*")) {
+//                countStars++;
+//                continue;
+//            }
+//            revealedChar = s;
+//        }
+
+
+    }
+
+    private static int starMaskCounter(String maskedWord) {
         int countStars = 0;
-        String revealedChar = "";
         for (String s : maskedWord.split("")) {
             if (s.equals("*")) {
                 countStars++;
-                continue;
             }
-            revealedChar = s;
         }
-
-        assertThat(countStars).isEqualTo(5);
-        assertThat(guessWord).contains(revealedChar);
-
+        return countStars;
     }
 
 

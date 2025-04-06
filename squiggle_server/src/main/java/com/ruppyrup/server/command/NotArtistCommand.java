@@ -39,10 +39,16 @@ public class NotArtistCommand implements SquiggleCommand {
         wordRepository.incrementGuessCount();
         if (wordRepository.getGuessCount() >= revealCount) {
             log.info("Reveal another letter {} on thread {}", drawPoint, Thread.currentThread());
+            wordRepository.incrementRevealCount();
+//            todo check this is sending
+//            todo need to remember the letters that have been revealed
+            String maskedWord = WordMasker.getMaskedWord(wordRepository.getGuessWord(), wordRepository.getMaskedWord(), wordRepository.getRevealCount());
+            wordRepository.setMaskedWord(maskedWord);
+            log.info("Masked word is {} on thread {}", maskedWord, Thread.currentThread());
             DrawPoint drawPointToSend = DrawPoint.builder()
                     .action("reveal")
                     .playerId(drawPoint.playerId())
-                    .guessWord(WordMasker.getMaskedWord(wordRepository.getGuessWord(), wordRepository.getGuessCount() / revealCount))
+                    .guessWord(maskedWord)
                     .build();
             try {
                 messageService.sendInfo(session, drawPointToSend.toJson());

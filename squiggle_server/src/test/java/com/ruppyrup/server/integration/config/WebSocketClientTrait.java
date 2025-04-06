@@ -4,11 +4,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public interface WebSocketClientTrait {
 
     List<WebsocketClientEndpoint> clientEndPoints = new ArrayList<>();
-    List<String> recievedMessages = new ArrayList<>();
+    Queue<String> recievedMessages = new ConcurrentLinkedQueue<>();
 
 
     default void connectWebsocketClient(int port) {
@@ -19,8 +21,8 @@ public interface WebSocketClientTrait {
             clientEndPoints.add(clientEndpoint);
             // add listener
             clientEndpoint.addMessageHandler(message -> {
-                System.out.println("Message received = " + message);
                 recievedMessages.add(message);
+                System.out.println("Message received = " + message + " from thread " + Thread.currentThread().getName() + "size = " + recievedMessages.size());
             });
         } catch (URISyntaxException ex) {
             System.err.println("URISyntaxException exception: " + ex.getMessage());

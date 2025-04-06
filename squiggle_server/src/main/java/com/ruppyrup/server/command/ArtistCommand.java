@@ -24,7 +24,7 @@ public class ArtistCommand implements SquiggleCommand {
         String guessWord = drawPoint.guessWord();
         wordRepository.setGuessWord(guessWord);
 
-        String maskedWord = WordMasker.getMaskedWord(guessWord, 0);
+        String maskedWord = WordMasker.getMaskedWord(guessWord, wordRepository.getMaskedWord(),0);
 
         DrawPoint drawPointToSend = DrawPoint.builder()
                 .action(drawPoint.action())

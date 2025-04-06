@@ -19,11 +19,11 @@ public class MessageService {
     }
 
     public void sendInfo(WebSocketSession receivingSession, String info) {
-        log.info("Send info called by thread {}", Thread.currentThread().getName());
+        log.info("Send info called by thread {} with info => {}", Thread.currentThread().getName(), info);
         if (sessions.isEmpty()) return;
 
         for (WebSocketSession session : sessions) {
-            if (session == receivingSession && !info.contains("winner")) continue;
+            if (session == receivingSession && !info.contains("winner") && !info.contains("reveal")) continue;
             // Don't send to the session that sent the message
             executor.submit(() -> {
                 safeSend(session, info);

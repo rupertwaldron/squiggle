@@ -3,12 +3,32 @@ package com.ruppyrup.server.repository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 @Slf4j
 public class WordRepository {
     private String guessWord;
+    private final AtomicReference<String> maskedWord = new AtomicReference<>("");
     private final AtomicInteger guessCount = new AtomicInteger(0);
+    private final AtomicInteger revealCount = new AtomicInteger(0);
+    public int getRevealCount() {
+        return revealCount.get();
+    }
+
+    public String getMaskedWord() {
+        return maskedWord.get();
+    }
+
+    public void setMaskedWord(String maskedWord) {
+        log.info("Setting guess word to {}", guessWord);
+        this.maskedWord.set(maskedWord);
+    }
+
+    public void incrementRevealCount() {
+        log.info("Setting reveal count to {}", revealCount.get() + 1);
+        revealCount.incrementAndGet();
+    }
 
     public int getGuessCount() {
         return guessCount.get();
