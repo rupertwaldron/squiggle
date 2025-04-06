@@ -21,21 +21,10 @@ public class WordMasker {
             return guessWord;
         }
 
-
-        int starred = starMaskCounter(maskedWord);
-
         List<Integer> stars = new ArrayList<>();
         List<Integer> reveals = new ArrayList<>();
 
-        int index = 0;
-        for (String s : maskedWord.split("")) {
-            if (s.equals("*")) {
-                stars.add(index);
-            } else {
-                reveals.add(index);
-            }
-            index++;
-        }
+        populatePositions(maskedWord, stars, reveals);
 
         if (reveals.size() >= revealCount) {
             return maskedWord;
@@ -46,38 +35,28 @@ public class WordMasker {
             return guessWord;
         }
 
-//        for (int i = 0; i < charsToReveal; i++) {
-//            if (stars.isEmpty()) {
-//                break;
-//            }
-//            int charToReveal = stars.get(random.nextInt(stars.size()));
-//            maskedWord = maskedWord.substring(0, charToReveal) + guessWord.charAt(charToReveal) + maskedWord.substring(charToReveal + 1);
-//            stars.remove((Integer) charToReveal);
-//        }
-
-        if (stars.size() == guessWord.length()) {
-            int charToReveal = stars.get(random.nextInt(stars.size()));
-            maskedWord = maskedWord.substring(0, charToReveal) + guessWord.charAt(charToReveal) + maskedWord.substring(charToReveal + 1);
-        } else {
-            int charToReveal = stars.get(random.nextInt(stars.size()));
+        while (charsToReveal > 0) {
+            int indexOfStarToReplace = random.nextInt(stars.size());
+            int charToReveal = stars.get(indexOfStarToReplace);
+            stars.remove(indexOfStarToReplace);
             System.out.println("charToReveal = " + charToReveal);
             maskedWord = maskedWord.substring(0, charToReveal) + guessWord.charAt(charToReveal) + maskedWord.substring(charToReveal + 1);
+            charsToReveal--;
         }
 
         return maskedWord;
+    }
 
-
-//        for (int i = 0; i < revealCount; i++) {
-//            for (String s : guessWord.split("")) {
-//                if (s.equals("*")) {
-//
-//                }
-//            }
-//            int charToReveal = (int) (Math.random() * guessWord.length());
-//            stringBuilder.setCharAt(charToReveal, guessWord.charAt(charToReveal));
-//        }
-//
-//        return stringBuilder.toString();
+    private static void populatePositions(String maskedWord, List<Integer> stars, List<Integer> reveals) {
+        int index = 0;
+        for (String s : maskedWord.split("")) {
+            if (s.equals("*")) {
+                stars.add(index);
+            } else {
+                reveals.add(index);
+            }
+            index++;
+        }
     }
 
     public String maskWholeWord(String guessWord) {

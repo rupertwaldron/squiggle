@@ -72,6 +72,7 @@ class WordMaskerTest {
         String result = WordMasker.getMaskedWord(guessWord, maskedWord, 3);
 
         int starCount = WordMasker.starMaskCounter(result);
+        System.out.println("maskedWord = " + result);
 
         assertEquals(2, starCount);
     }
