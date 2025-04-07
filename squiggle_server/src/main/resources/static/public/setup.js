@@ -6,6 +6,7 @@ const clearButton = document.getElementById("clear");
 const strokeColorInput = document.getElementById('stroke');
 const guessWordInput = document.getElementById('guessWord');
 const letterBoxes = document.getElementById("letter-boxes");
+const playerIdInput = document.getElementById('playerText');
 const ctx = canvas.getContext('2d');
 
 const canvasOffsetX = canvas.offsetLeft;
@@ -28,6 +29,7 @@ window.onload = function () {
     const name = prompt("Welcome! Please enter your name:");
     if (name) {
         playerId = name;
+        playerIdInput.textContent = playerId;
         console.log('Player Id set to:', playerId);
     } else {
         console.warn('Player Id not set');
@@ -101,6 +103,6 @@ const updateArtistBtn = () => {
         console.log('Artist mode disabled');
         guessWord = null;
         guessWordInput.value = '';
-        sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId}));
+        // sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId}));
     }
 }

@@ -26,7 +26,7 @@ socket.onmessage = function(event) {
         guessBoxes(data.guessWord)
     } else if (data.action === 'reveal') {
         console.log('Reveal word:', data.guessWord);
-        guessBoxes(data.guessWord)
+        revealLetters(data.guessWord)
     }
     else if (data.action === 'not-artist') {
         console.log('Artist is now not:', data.playerId);

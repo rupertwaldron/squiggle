@@ -16,3 +16,13 @@ const guessBoxes = (word) => {
         container.appendChild(box);
     }
 }
+
+const revealLetters = (word) => {
+    Array.from(container.children).forEach((box, index) => {
+        if (word[index] === "*") {
+            box.textContent = '';
+        } else {
+            box.textContent = word[index];
+        }
+    });
+}
