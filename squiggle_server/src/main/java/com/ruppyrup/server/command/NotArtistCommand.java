@@ -13,35 +13,33 @@ public class NotArtistCommand implements SquiggleCommand {
 
     private final MessageService messageService;
     private final WordRepository wordRepository;
-    private final int revealCount;
+    private final int revealTriggerPoint;
 
-    public NotArtistCommand(MessageService messageService, WordRepository wordRepository, int revealCount) {
+    public NotArtistCommand(MessageService messageService, WordRepository wordRepository, int revealTriggerPoint) {
         this.messageService = messageService;
         this.wordRepository = wordRepository;
-        this.revealCount = revealCount;
+        this.revealTriggerPoint = revealTriggerPoint;
     }
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        if (wordRepository.getGuessWord() == null) {
-            log.info("Guess word is null {} on thread {}", drawPoint, Thread.currentThread());
+        if (wordRepository.getGuessWord() == null || !wordRepository.isReady()) {
+            log.info("Word repository is not set {} on thread {}", drawPoint, Thread.currentThread());
             return;
         }
 
         if (wordRepository.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
-            handleWinner(session, drawPoint);
+            handleWinner(drawPoint);
         } else {
-            handleRetry(session, drawPoint);
+            handleRetry(drawPoint);
         }
     }
 
-    private void handleRetry(WebSocketSession session, DrawPoint drawPoint) {
+    private void handleRetry(DrawPoint drawPoint) {
         wordRepository.incrementGuessCount();
-        if (wordRepository.getGuessCount() >= revealCount) {
+        if (wordRepository.getGuessCount() >= revealTriggerPoint) {
             log.info("Reveal another letter {} on thread {}", drawPoint, Thread.currentThread());
             wordRepository.incrementRevealCount();
-//            todo check this is sending
-//            todo need to remember the letters that have been revealed
             String maskedWord = WordMasker.getMaskedWord(wordRepository.getGuessWord(), wordRepository.getMaskedWord(), wordRepository.getRevealCount());
             wordRepository.setMaskedWord(maskedWord);
             log.info("Masked word is {} on thread {}", maskedWord, Thread.currentThread());
@@ -51,7 +49,7 @@ public class NotArtistCommand implements SquiggleCommand {
                     .guessWord(maskedWord)
                     .build();
             try {
-                messageService.sendInfo(session, drawPointToSend.toJson());
+                messageService.sendInfoToAll(drawPointToSend.toJson());
                 wordRepository.setGuessCount(0);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -59,7 +57,7 @@ public class NotArtistCommand implements SquiggleCommand {
         }
     }
 
-    private void handleWinner(WebSocketSession session, DrawPoint drawPoint) {
+    private void handleWinner(DrawPoint drawPoint) {
         log.info("Correct guess {} on thread {}", drawPoint, Thread.currentThread());
         DrawPoint winnerDrawPoint = DrawPoint.builder()
                 .action("winner")
@@ -67,7 +65,7 @@ public class NotArtistCommand implements SquiggleCommand {
                 .guessWord(wordRepository.getGuessWord())
                 .build();
         try {
-            messageService.sendInfo(session, winnerDrawPoint.toJson());
+            messageService.sendInfoToAll(winnerDrawPoint.toJson());
             wordRepository.setGuessWord(null);
             wordRepository.setGuessCount(0);
         } catch (JsonProcessingException e) {

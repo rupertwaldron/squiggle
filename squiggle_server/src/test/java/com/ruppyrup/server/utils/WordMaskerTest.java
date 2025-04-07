@@ -77,4 +77,31 @@ class WordMaskerTest {
         assertEquals(2, starCount);
     }
 
+    @Test
+    void maskedWordReturnsSameIfAlreadyRevealedNumber() {
+        String guessWord = "hello";
+        String maskedWord = "h**l*";
+        String result = WordMasker.getMaskedWord(guessWord, maskedWord, 2);
+
+        assertEquals("h**l*", result);
+    }
+
+    @Test
+    void maskedWordReturnsGuessWordIfRevealCountIsGreaterThanGuessWordLength() {
+        String guessWord = "hello";
+        String maskedWord = "h**l*";
+        String result = WordMasker.getMaskedWord(guessWord, maskedWord, 6);
+
+        assertEquals("hello", result);
+    }
+
+    @Test
+    void maskedWordRetursSameIfRevealCountLessThanCurrentlyRevealed() {
+        String guessWord = "hello";
+        String maskedWord = "he*l*";
+        String result = WordMasker.getMaskedWord(guessWord, maskedWord, 2);
+
+        assertEquals("he*l*", result);
+    }
+
 }

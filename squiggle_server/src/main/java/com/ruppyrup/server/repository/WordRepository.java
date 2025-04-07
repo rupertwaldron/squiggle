@@ -2,6 +2,7 @@ package com.ruppyrup.server.repository;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,6 +13,17 @@ public class WordRepository {
     private final AtomicReference<String> maskedWord = new AtomicReference<>("");
     private final AtomicInteger guessCount = new AtomicInteger(0);
     private final AtomicInteger revealCount = new AtomicInteger(0);
+    private final AtomicBoolean isReady = new AtomicBoolean(false);
+
+    public boolean isReady() {
+        return isReady.get();
+    }
+
+    public void setIsReady(boolean ready) {
+        log.info("Setting ready to {}", ready);
+        isReady.set(ready);
+    }
+
     public int getRevealCount() {
         return revealCount.get();
     }
@@ -21,7 +33,7 @@ public class WordRepository {
     }
 
     public void setMaskedWord(String maskedWord) {
-        log.info("Setting guess word to {}", guessWord);
+        log.info("Setting masked word to {}", maskedWord);
         this.maskedWord.set(maskedWord);
     }
 

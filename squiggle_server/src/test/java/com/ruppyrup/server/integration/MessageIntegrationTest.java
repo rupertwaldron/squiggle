@@ -86,6 +86,8 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
+        assertThat(recievedMessages.size()).isEqualTo(1);
+
         DrawPoint received = getMessage(recievedMessages.poll());
 
         assertThat(received)
@@ -110,8 +112,9 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
+        assertThat(recievedMessages.size()).isEqualTo(1);
+
         DrawPoint received = getMessage(recievedMessages.poll());
-        System.out.println(drawPoint);
 
         assertThat(received)
                 .usingRecursiveComparison()
@@ -136,10 +139,12 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
+        assertThat(recievedMessages.size()).isEqualTo(1);
+
         DrawPoint received = getMessage(recievedMessages.poll());
 
         DrawPoint expected = DrawPoint.builder()
-                .action(received.action())
+                .action("artist")
                 .playerId(PLAYER_1)
                 .guessWord("********")
                 .build();
@@ -152,7 +157,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.NullCommand")
     @Test
-    void serverReceivesInvalidMessage() throws JsonProcessingException, InterruptedException {
+    void serverReceivesInvalidMessage() throws JsonProcessingException {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
 
@@ -257,7 +262,9 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         await()
                 .atMost(Duration.TEN_SECONDS)
-                .until(() -> wordRepository.getGuessWord().equals("Monkey"));
+                .until(() -> wordRepository.getGuessWord().equals("Monkey") &&
+                        wordRepository.getMaskedWord().equals("******") &&
+                        recievedMessages.size() == 1);
     }
 
     @Test
@@ -280,15 +287,19 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> recievedMessages.size() == 2);
 
-        JSONAssert.assertEquals(
-                "{\"action\":\"winner\",\"playerId\":\"Player1\",\"guessWord\":\"Monkey\"}",
-                recievedMessages.poll(),
-                JSONCompareMode.LENIENT);
+        DrawPoint expected = DrawPoint.builder()
+                .action("winner")
+                .guessWord("Monkey")
+                .playerId(PLAYER_1)
+                .build();
 
-        JSONAssert.assertEquals(
-                "{\"action\":\"winner\",\"playerId\":\"Player1\",\"guessWord\":\"Monkey\"}",
-                recievedMessages.poll(),
-                JSONCompareMode.LENIENT);
+        assertThat(getMessage(recievedMessages.poll()))
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+
+        assertThat(getMessage(recievedMessages.poll()))
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
     @Test
@@ -309,14 +320,20 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> recievedMessages.size() == 1);
 
-        JSONAssert.assertEquals(
-                "{\"action\":\"artist\",\"playerId\":\"Player1\",\"x\":0,\"y\":0,\"isFilled\":false,\"guessWord\":\"******\"}",
-                recievedMessages.poll(),
-                JSONCompareMode.LENIENT);
+        DrawPoint expected = DrawPoint.builder()
+                .action("artist")
+                .guessWord("******")
+                .playerId(PLAYER_1)
+                .build();
+
+        assertThat(getMessage(recievedMessages.poll()))
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
+    @LoggingExtensionConfig("com.ruppyrup.server.command.NotArtistCommand")
     @Test
-    void participantReceivesMaskedWordWithRevealedCharsAfterXGuesses() throws JsonProcessingException, InterruptedException, JSONException {
+    void participantReceivesNoMaskedWordIsArtisCommandNotRun() throws JsonProcessingException, InterruptedException, JSONException {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
 
@@ -330,34 +347,58 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        for (int i = 0; i < revealCount * 5; i++) {
+        for (int i = 0; i < revealCount * 2; i++) {
             clientEndPoints.getFirst().sendMessage(message);
             Thread.sleep(1000);
         }
 
         await()
-                .atMost(Duration.ONE_MINUTE)
-                .until(() -> recievedMessages.size() >= 10);
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> listAppender.list.size() == 4);
 
-        String maskedWord = JsonPath.read(recievedMessages.poll(), "$.guessWord");
+        assertThat(listAppender.list.getFirst().getFormattedMessage())
+                .containsSubsequence("Word repository is not set");
+
+    }
+
+    @Test
+    void participantReceivesMaskedWordWithRevealedCharsAfterXGuesses() throws JsonProcessingException, InterruptedException, JSONException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        String guessWord = "Monkey";
+        DrawPoint artistDrawPoint = DrawPoint.builder()
+                .action("artist")
+                .guessWord(guessWord)
+                .playerId(PLAYER_1)
+                .build();
+
+        String message = mapper.writeValueAsString(artistDrawPoint);
+        clientEndPoints.getFirst().sendMessage(message);
+        Thread.sleep(1000);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("not-artist")
+                .guessWord("Invalid")
+                .playerId(PLAYER_1)
+                .build();
+        message = mapper.writeValueAsString(drawPoint);
+
+        for (int i = 0; i < revealCount * 6; i++) {
+            clientEndPoints.getLast().sendMessage(message);
+        }
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> recievedMessages.size() >= 12);
 
         List<Integer> list = recievedMessages.stream()
                 .map(s -> (String) JsonPath.read(s, "$.guessWord"))
                 .map(MessageIntegrationTest::starMaskCounter)
                 .toList();
 
-        System.out.println(list);
-//        int countStars = 0;
-//        String revealedChar = "";
-//        for (String s : maskedWord.split("")) {
-//            if (s.equals("*")) {
-//                countStars++;
-//                continue;
-//            }
-//            revealedChar = s;
-//        }
-
-
+        assertThat(list)
+                .containsExactly(6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 0, 0);
     }
 
     private static int starMaskCounter(String maskedWord) {

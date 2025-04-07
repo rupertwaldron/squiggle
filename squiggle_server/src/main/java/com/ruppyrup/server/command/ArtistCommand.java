@@ -25,6 +25,8 @@ public class ArtistCommand implements SquiggleCommand {
         wordRepository.setGuessWord(guessWord);
 
         String maskedWord = WordMasker.getMaskedWord(guessWord, wordRepository.getMaskedWord(),0);
+        wordRepository.setMaskedWord(maskedWord);
+        wordRepository.setIsReady(true);
 
         DrawPoint drawPointToSend = DrawPoint.builder()
                 .action(drawPoint.action())
@@ -33,7 +35,7 @@ public class ArtistCommand implements SquiggleCommand {
                 .build();
 
         try {
-            messageService.sendInfo(session, drawPointToSend.toJson());
+            messageService.sendInfoToOthers(session, drawPointToSend.toJson());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

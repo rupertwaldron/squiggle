@@ -19,7 +19,7 @@ public class MouseUpCommand implements SquiggleCommand {
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
         // Handle the draw point here
         try {
-            messageService.sendInfo(session, drawPoint.toJson());
+            messageService.sendInfoToOthers(session, drawPoint.toJson());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

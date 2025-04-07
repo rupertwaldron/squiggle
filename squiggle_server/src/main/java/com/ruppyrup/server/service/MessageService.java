@@ -18,12 +18,25 @@ public class MessageService {
         this.executor = executor;
     }
 
-    public void sendInfo(WebSocketSession receivingSession, String info) {
-        log.info("Send info called by thread {} with info => {}", Thread.currentThread().getName(), info);
+    public void sendInfoToOthers(WebSocketSession receivingSession, String info) {
+        log.info("Send info to others called by thread {} with info => {}", Thread.currentThread().getName(), info);
         if (sessions.isEmpty()) return;
 
         for (WebSocketSession session : sessions) {
-            if (session == receivingSession && !info.contains("winner") && !info.contains("reveal")) continue;
+            if (session == receivingSession) continue;
+            // Don't send to the session that sent the message
+            executor.submit(() -> {
+                safeSend(session, info);
+                log.info("Sent message {} on thread {}", info, Thread.currentThread());
+            });
+        }
+    }
+
+    public void sendInfoToAll(String info) {
+        log.info("Send info to all called by thread {} with info => {}", Thread.currentThread().getName(), info);
+        if (sessions.isEmpty()) return;
+
+        for (WebSocketSession session : sessions) {
             // Don't send to the session that sent the message
             executor.submit(() -> {
                 safeSend(session, info);
