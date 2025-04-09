@@ -197,7 +197,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .until(() -> !listAppender.list.isEmpty());
 
         assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Guess word is null DrawPoint");
+                .containsSubsequence("Word repository is not set DrawPoint");
     }
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.MouseUpCommand")
@@ -336,9 +336,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
     void participantReceivesNoMaskedWordIsArtisCommandNotRun() throws JsonProcessingException, InterruptedException, JSONException {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
-
-        String guessWord = "Monkey";
-        wordRepository.setGuessWord(guessWord);
 
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("not-artist")
