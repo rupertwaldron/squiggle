@@ -66,6 +66,8 @@ public class NotArtistCommand implements SquiggleCommand {
                 .build();
         try {
             messageService.sendInfoToAll(winnerDrawPoint.toJson());
+            wordRepository.setIsReady(false);
+            wordRepository.resetRevealCount();
             wordRepository.setGuessWord(null);
             wordRepository.setGuessCount(0);
         } catch (JsonProcessingException e) {

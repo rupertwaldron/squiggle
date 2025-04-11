@@ -52,3 +52,29 @@ canvas.addEventListener('mouseup', e => {
 });
 
 canvas.addEventListener('mousemove', draw);
+
+const displayWinner = () => {
+    ctx.drawImage(winnerImg, 250, 250, canvas.width / 2, canvas.height / 2);
+    console.log('Winner displayed');
+}
+
+const displayLoser = () => {
+    ctx.drawImage(loserImg, 250, 250, canvas.width / 2, canvas.height / 2);
+    console.log('Loser displayed');
+}
+
+const writeOnCanvas = (word, color, outline) => {
+    // Set text styles
+    ctx.font = "48px Arial";
+    ctx.fillStyle = color; // text color
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // Draw filled text at center of canvas
+    ctx.fillText(word, canvas.width / 2, canvas.height / 2);
+
+    // Optional: outline the text
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 2;
+    ctx.strokeText(word, canvas.width / 2, canvas.height / 2);
+}

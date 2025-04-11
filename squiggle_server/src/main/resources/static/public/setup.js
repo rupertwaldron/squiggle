@@ -8,6 +8,10 @@ const guessWordInput = document.getElementById('guessWord');
 const letterBoxes = document.getElementById("letter-boxes");
 const playerIdInput = document.getElementById('playerText');
 const ctx = canvas.getContext('2d');
+const winnerImg = new Image();
+winnerImg.src = 'images/winner.png';
+const loserImg = new Image();
+loserImg.src = 'images/loser.png';
 
 const canvasOffsetX = canvas.offsetLeft;
 const canvasOffsetY = canvas.offsetTop;
@@ -105,4 +109,14 @@ const updateArtistBtn = () => {
         guessWordInput.value = '';
         // sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId}));
     }
+}
+
+function waitForClick(element = document) {
+    return new Promise(resolve => {
+        const handler = (event) => {
+            element.removeEventListener('mousedown', handler);
+            resolve(event);
+        };
+        element.addEventListener('mousedown', handler);
+    });
 }

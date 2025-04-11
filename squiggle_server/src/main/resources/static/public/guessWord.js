@@ -26,3 +26,9 @@ const revealLetters = (word) => {
         }
     });
 }
+
+const clearLetters = () => {
+    Array.from(container.children).forEach((box, index) => {
+        box.remove();
+    })
+}

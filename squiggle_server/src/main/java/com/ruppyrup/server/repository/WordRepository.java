@@ -42,6 +42,11 @@ public class WordRepository {
         revealCount.incrementAndGet();
     }
 
+    public void resetRevealCount() {
+        log.info("Resetting reveal count to 0");
+        revealCount.set(0);
+    }
+
     public int getGuessCount() {
         return guessCount.get();
     }

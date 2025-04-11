@@ -10,7 +10,7 @@ socket.onopen = function() {
 
 // Event listener for incoming messages
 
-socket.onmessage = function(event) {
+socket.onmessage = async function(event) {
     const data = JSON.parse(event.data);
     console.log('Received data:', data);
     if (data.action === 'mouseup') {
@@ -31,15 +31,22 @@ socket.onmessage = function(event) {
     else if (data.action === 'not-artist') {
         console.log('Artist is now not:', data.playerId);
     } else if (data.action === 'winner') {
+        revealLetters(data.guessWord)
         if (playerId === data.playerId) {
+            displayWinner();
             console.log('You are the winner:', data.playerId);
         } else if (isArtist) {
             isArtist = false;
             updateArtistBtn();
+            // displayWinner();
             console.log('This winner is:', data.playerId);
         } else {
+            displayLoser()
             console.log('You are a looser, winner is:', data.playerId);
         }
+        writeOnCanvas("Winner is: " + data.playerId, "gold", "black");
+        await waitForClick()
+        clearLetters();
         clearDrawing();
     }
 };
