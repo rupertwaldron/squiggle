@@ -71,10 +71,10 @@ const writeOnCanvas = (word, color, outline) => {
     ctx.textBaseline = "middle";
 
     // Draw filled text at center of canvas
-    ctx.fillText(word, canvas.width / 2, canvas.height / 2);
+    ctx.fillText(word, canvas.width / 2, canvas.height / 10);
 
     // Optional: outline the text
     ctx.strokeStyle = outline;
     ctx.lineWidth = 2;
-    ctx.strokeText(word, canvas.width / 2, canvas.height / 2);
+    ctx.strokeText(word, canvas.width / 2, canvas.height / 10);
 }

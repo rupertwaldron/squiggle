@@ -44,7 +44,7 @@ socket.onmessage = async function(event) {
             displayLoser()
             console.log('You are a looser, winner is:', data.playerId);
         }
-        writeOnCanvas("Winner is: " + data.playerId, "gold", "black");
+        writeOnCanvas("Winner is: " + data.playerId + "\n click to play again", "gold", "black");
         await waitForClick()
         clearLetters();
         clearDrawing();
