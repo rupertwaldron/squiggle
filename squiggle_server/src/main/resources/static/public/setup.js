@@ -13,8 +13,7 @@ winnerImg.src = 'images/winner.png';
 const loserImg = new Image();
 loserImg.src = 'images/loser.png';
 
-// const canvasOffsetX = canvas.offsetLeft;
-const canvasOffsetX = 140; // Adjusted for the toolbar width
+const canvasOffsetX = canvas.offsetLeft;
 const canvasOffsetY = canvas.offsetTop;
 
 canvas.width = window.innerWidth - canvasOffsetX;
