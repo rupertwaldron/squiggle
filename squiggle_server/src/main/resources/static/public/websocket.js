@@ -64,6 +64,7 @@ socket.onclose = function() {
 // Function to send a message when the button is clicked
 function sendMessage(message) {
     if (socket.readyState === WebSocket.OPEN) {
+        console.log("Message sent ==> " + message)
         socket.send(message);
         console.log('Sent:', message);
     } else {

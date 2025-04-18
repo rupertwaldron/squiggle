@@ -1,5 +1,6 @@
 package com.ruppyrup.server.command;
 
+import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,11 +12,12 @@ import java.util.Map;
 public class SquiggleCommandFactory {
     private final Map<String, SquiggleCommand> commandMap = new HashMap<>();
 
-    public SquiggleCommandFactory(MessageService messageService, WordRepository wordRepository, int revealCount) {
+    public SquiggleCommandFactory(MessageService messageService, WordRepository wordRepository, GameRepository gameRepository, int revealCount) {
         this.commandMap.put("mousemove", new MouseDownCommand(messageService));
         this.commandMap.put("mouseup", new MouseUpCommand(messageService));
         this.commandMap.put("artist", new ArtistCommand(messageService, wordRepository));
         this.commandMap.put("not-artist", new NotArtistCommand(messageService, wordRepository, revealCount));
+        this.commandMap.put("newGameRoom", new NewGameCommand(messageService, gameRepository));
     }
 
     public SquiggleCommand getCommand(String command) {

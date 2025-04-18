@@ -43,6 +43,7 @@ h3 {
 }
 
 #toolbar label {
+    padding-top: 20px;
     font-size: 14px;
 }
 
@@ -51,11 +52,20 @@ h3 {
 }
 
 #toolbar button {
-    background-color: grey;
+    background-color: plum;
     border: none;
     border-radius: 4px;
     color:white;
     padding: 2px;
+}
+
+#game-room label {
+    font-size: 14px;
+    color: #333;
+}
+
+#game-room input {
+    width: 100%;
 }
 
 body {
@@ -89,3 +99,19 @@ body {
     text-transform: uppercase;
     background-color: white;
 }
+
+#gameLink {
+    background-color: white;
+    border: 2px solid #333;
+    border-radius: 4px;
+    color:blue;
+    padding: 2px;
+}
+
+ #toolbar button:disabled {
+     background-color: #cccccc; /* light gray background */
+     color: #666666;            /* dark gray text */
+     cursor: not-allowed;       /* shows disabled cursor */
+     border: 1px solid #999;
+     opacity: 1;                /* override default opacity */
+ }

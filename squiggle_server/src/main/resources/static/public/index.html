@@ -21,6 +21,12 @@
         <button id="artist">Artist</button>
         <label for="guessWord">Guess Word</label>
         <input id="guessWord" type="text" placeholder="Word for guessing">
+        <label for="startNewGame">New Game Room</label>
+        <button id="startNewGame">New Game</button>
+        <input id=gameLink type="text" value="Give link to others"/>
+        <button id=copyButton onclick="navigator.clipboard.writeText(this.previousElementSibling.value)">Copy</button>
+        <label for="playGame">Let's Play</label>
+        <button id="playGame">Start Game</button>
     </div>
     <div class="drawing-board">
         <canvas id="drawing-board"></canvas>

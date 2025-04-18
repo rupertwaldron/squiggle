@@ -3,10 +3,13 @@ const toolbar = document.getElementById('toolbar');
 const fillButton = document.getElementById("fill");
 const artistButton = document.getElementById("artist");
 const clearButton = document.getElementById("clear");
+const startNewRoomButton = document.getElementById("startNewGame");
 const strokeColorInput = document.getElementById('stroke');
 const guessWordInput = document.getElementById('guessWord');
+const playButton = document.getElementById('playGame');
 const letterBoxes = document.getElementById("letter-boxes");
 const playerIdInput = document.getElementById('playerText');
+const gameLinkInput = document.getElementById('gameLink');
 const ctx = canvas.getContext('2d');
 const winnerImg = new Image();
 winnerImg.src = 'images/winner.png';
@@ -25,23 +28,31 @@ let lineWidth = 5;
 let isArtist = false;
 let playerId = null;
 let guessWord = null;
+let gameId = null;
 let startX;
 let startY;
 
 
 window.onload = function () {
-    const name = prompt("Welcome! Please enter your name:");
-    if (name) {
-        playerId = name;
-        playerIdInput.textContent = playerId;
-        console.log('Player Id set to:', playerId);
-    } else {
-        console.warn('Player Id not set');
+    canvas.style.display = 'none';
+    const params = new URLSearchParams(window.location.search);
+    const gameIdFromUrl = params.get('gameId');
+    if (gameIdFromUrl) {
+        gameId = gameIdFromUrl;
+        console.log('Game ID from URL:', gameId);
+        sendMessage(JSON.stringify({action: 'enterRoom', gameId: gameId, playerId: playerId}));
     }
 }
 
-
 toolbar.addEventListener('click', e => {
+    if (e.target.id === 'startNewGame') {
+        setUpRoom();
+    }
+
+    if (e.target.id === 'playGame') {
+        startGame();
+    }
+
     if (e.target.id === 'clear') {
         clearDrawing();
     }
@@ -58,6 +69,8 @@ toolbar.addEventListener('click', e => {
         console.log('Canvas cleared');
     }
 });
+
+
 toolbar.addEventListener('change', e => {
     if (e.target.id === 'stroke') {
         ctx.strokeStyle = e.target.value;
@@ -119,4 +132,41 @@ function waitForClick(element = document) {
         };
         element.addEventListener('mousedown', handler);
     });
+}
+
+const setUpRoom = () => {
+    gameId = crypto.randomUUID();
+    gameLinkInput.value = `https://squiggle-dd7ef.web.app?gameId=${encodeURIComponent(gameId)}`;
+    console.log('Game ID generated:', gameId);
+    sendMessage(JSON.stringify({action: 'newGameRoom', gameId: gameId}));
+}
+
+const startGame = () => {
+    if (gameId == null) {
+        alert('Please set up a game room first');
+        return;
+    }
+    console.log('Game started');
+    canvas.style.display = 'block';
+    const name = prompt("Welcome! Please enter your name:");
+    if (name) {
+        playerId = name;
+        playerIdInput.textContent = playerId;
+        console.log('Player Id set to:', playerId);
+    } else {
+        console.warn('Player Id not set');
+    }
+    disableButtons();
+}
+
+const disableButtons = () => {
+    startNewRoomButton.disabled = true;
+    playButton.disabled = true;
+    console.log('Buttons disabled');
+}
+
+const enableButtons = () => {
+    startNewRoomButton.disabled = false;
+    playButton.disabled = false;
+    console.log('Buttons enabled');
 }

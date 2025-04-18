@@ -9,6 +9,7 @@ import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
@@ -41,6 +42,9 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @Autowired
     private WordRepository wordRepository;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     @Value("${reveal.count}")
     private int revealCount;
@@ -224,7 +228,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.ArtistCommand")
     @Test
-    void serverReceivesNotArtistCommantWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
+    void serverReceivesNotArtistCommandWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
 
@@ -243,6 +247,30 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         assertThat(listAppender.list.getFirst().getFormattedMessage())
                 .containsSubsequence("Sending artist change");
+    }
+
+    @LoggingExtensionConfig("com.ruppyrup.server.command.NewGameCommand")
+    @Test
+    void serverReceivesNewGameCommandWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("newGameRoom")
+                .gameId("xyz")
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !listAppender.list.isEmpty());
+
+        assertThat(listAppender.list.getFirst().getFormattedMessage())
+                .containsSubsequence("New game with Id xyz");
+        assertThat(gameRepository.getGames().size()).isEqualTo(1);
+        assertThat(gameRepository.getGames()).contains("xyz");
     }
 
 
