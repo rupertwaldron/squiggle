@@ -40,7 +40,7 @@ window.onload = function () {
     if (gameIdFromUrl) {
         gameId = gameIdFromUrl;
         console.log('Game ID from URL:', gameId);
-        sendMessage(JSON.stringify({action: 'enterRoom', gameId: gameId, playerId: playerId}));
+        startGame()
     }
 }
 
@@ -153,6 +153,7 @@ const startGame = () => {
         playerId = name;
         playerIdInput.textContent = playerId;
         console.log('Player Id set to:', playerId);
+        sendMessage(JSON.stringify({action: 'enterRoom', gameId: gameId, playerId: playerId}))
     } else {
         console.warn('Player Id not set');
     }

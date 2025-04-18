@@ -2,6 +2,7 @@ package com.ruppyrup.server.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.service.MessageService;
 import com.ruppyrup.server.utils.WordMasker;
@@ -21,9 +22,12 @@ public class NewGameCommand implements SquiggleCommand {
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        String gameId = drawPoint.gameId();
-        gameRepository.addGame(gameId);
+        Game game = Game.builder()
+                .gameId(drawPoint.gameId())
+                .build();
 
-        log.info("New game with Id {} added on thread {}", gameId, Thread.currentThread());
+        gameRepository.addGame(game);
+
+        log.info("New game with Id {} added on thread {}", game.gameId(), Thread.currentThread());
     }
 }

@@ -18,6 +18,7 @@ public class SquiggleCommandFactory {
         this.commandMap.put("artist", new ArtistCommand(messageService, wordRepository));
         this.commandMap.put("not-artist", new NotArtistCommand(messageService, wordRepository, revealCount));
         this.commandMap.put("newGameRoom", new NewGameCommand(messageService, gameRepository));
+        this.commandMap.put("enterRoom", new EnterRoomCommand(messageService, gameRepository));
     }
 
     public SquiggleCommand getCommand(String command) {

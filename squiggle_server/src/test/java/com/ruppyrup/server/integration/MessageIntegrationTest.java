@@ -9,6 +9,7 @@ import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
@@ -26,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
@@ -251,9 +253,13 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.NewGameCommand")
     @Test
-    void serverReceivesNewGameCommandWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
+    void serverReceivesNewGameCommandWhenNewGameRequested() throws JsonProcessingException, InterruptedException {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
+
+        Game game = Game.builder()
+                .gameId("xyz")
+                .build();
 
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("newGameRoom")
@@ -270,7 +276,43 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         assertThat(listAppender.list.getFirst().getFormattedMessage())
                 .containsSubsequence("New game with Id xyz");
         assertThat(gameRepository.getGames().size()).isEqualTo(1);
-        assertThat(gameRepository.getGames()).contains("xyz");
+        assertThat(gameRepository.getGames().getFirst().gameId()).isEqualTo(game.gameId());
+    }
+
+    @LoggingExtensionConfig("com.ruppyrup.server.command.EnterRoomCommand")
+    @Test
+    void serverReceivesEnterRoomCommandWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        Game game = Game.builder()
+                .gameId("xyz")
+                .players(new ArrayList<>())
+                .build();
+
+        gameRepository.addGame(game);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("enterRoom")
+                .gameId("xyz")
+                .playerId(PLAYER_1)
+                .build();
+
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !listAppender.list.isEmpty());
+
+        assertThat(listAppender.list.getFirst().getFormattedMessage())
+                .containsSubsequence("Player with Id Player1 entered game with Id xyz");
+
+//        clientEndPoints.getLast().sendMessage(message);
+//
+//        assertThat(gameRepository.getGames().size()).isEqualTo(1);
+//        assertThat(gameRepository.getGames().getFirst().gameId()).isEqualTo(game.gameId());
     }
 
 

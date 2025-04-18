@@ -32,6 +32,15 @@ public class MessageService {
         }
     }
 
+    public void sendInfoBackToSender(WebSocketSession receivingSession, String info) {
+        log.info("Send info to sender called by thread {} with info => {}", Thread.currentThread().getName(), info);
+
+        executor.submit(() -> {
+            safeSend(receivingSession, info);
+            log.info("Sent message {} on thread {}", info, Thread.currentThread());
+        });
+    }
+
     public void sendInfoToAll(String info) {
         log.info("Send info to all called by thread {} with info => {}", Thread.currentThread().getName(), info);
         if (sessions.isEmpty()) return;
