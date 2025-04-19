@@ -40,7 +40,6 @@ window.onload = function () {
     if (gameIdFromUrl) {
         gameId = gameIdFromUrl;
         console.log('Game ID from URL:', gameId);
-        startGame()
     }
 }
 
