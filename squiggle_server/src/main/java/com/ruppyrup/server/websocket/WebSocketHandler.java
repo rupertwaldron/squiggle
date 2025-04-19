@@ -3,6 +3,7 @@ package com.ruppyrup.server.websocket;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.command.SquiggleCommandFactory;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.model.Jsonisable;
 import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.CloseStatus;
@@ -36,7 +37,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws JsonProcessingException {
         log.info("Received message {} on thread {}", message.getPayload(), Thread.currentThread());
 
-        DrawPoint drawPoint = DrawPoint.fromJson(message.getPayload());
+        DrawPoint drawPoint = Jsonisable.fromJson(message.getPayload(), DrawPoint.class);
 
         squiggleCommandFactory.getCommand(drawPoint.action()).execute(session, drawPoint);
     }

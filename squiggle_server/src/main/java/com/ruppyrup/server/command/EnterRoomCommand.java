@@ -32,10 +32,10 @@ public class EnterRoomCommand implements SquiggleCommand {
 
         if (!gameRepository.gameExists(gameId)) {
             log.info("Game with Id does not exist");
-            drawPointToSend.toBuilder()
+            DrawPoint invalid = drawPointToSend.toBuilder()
                     .gameId("Invalid")
                     .build();
-            sendToSender(session, drawPointToSend);
+            sendToSender(session, invalid);
             return;
         }
 
