@@ -26,6 +26,10 @@ public class GameRepository {
         games.remove(game);
     }
 
+    public void clearGames() {
+        games.clear();
+    }
+
     public void addPlayerToGame(String gameId, String playerId) {
         Game game = getGameById(gameId);
         if (game != null) {

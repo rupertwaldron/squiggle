@@ -69,5 +69,14 @@ public class WordRepository {
         log.info("Setting guess word to {}", guessWord);
         this.guessWord = guessWord;
     }
+
+    public void reset() {
+        log.info("Resetting WordRepository");
+        this.guessWord = null;
+        this.maskedWord.set("");
+        this.guessCount.set(0);
+        this.revealCount.set(0);
+        this.isReady.set(false);
+    }
 }
 
