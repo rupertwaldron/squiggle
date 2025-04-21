@@ -24,13 +24,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Session established with principle {} at {}", session.getPrincipal(), session.getRemoteAddress());
-        messageService.addSession(session);
+//        messageService.addSession(session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        messageService.removeSession(session);
+//        messageService.removeSession(session);
     }
 
     @Override

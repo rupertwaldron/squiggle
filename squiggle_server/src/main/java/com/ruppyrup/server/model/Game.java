@@ -12,7 +12,7 @@ import java.util.List;
 public record Game (
         String gameId,
         @Singular
-        List<String> players
+        List<Player> players
 ) implements Jsonisable {
 
     public static class GameBuilder {
@@ -26,15 +26,15 @@ public record Game (
         }
     }
 
-    public void addPlayer(String playerId) {
+    public void addPlayer(Player playerId) {
         players.add(playerId);
     }
 
-    public void removePlayer(String playerId) {
+    public void removePlayer(Player playerId) {
         players.remove(playerId);
     }
 
-    public boolean isPlayerInGame(String playerId) {
+    public boolean isPlayerInGame(Player playerId) {
         return players.contains(playerId);
     }
 

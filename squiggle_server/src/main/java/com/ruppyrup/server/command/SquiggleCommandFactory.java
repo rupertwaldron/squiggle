@@ -13,10 +13,10 @@ public class SquiggleCommandFactory {
     private final Map<String, SquiggleCommand> commandMap = new HashMap<>();
 
     public SquiggleCommandFactory(MessageService messageService, WordRepository wordRepository, GameRepository gameRepository, int revealCount) {
-        this.commandMap.put("mousemove", new MouseDownCommand(messageService));
-        this.commandMap.put("mouseup", new MouseUpCommand(messageService));
-        this.commandMap.put("artist", new ArtistCommand(messageService, wordRepository));
-        this.commandMap.put("not-artist", new NotArtistCommand(messageService, wordRepository, revealCount));
+        this.commandMap.put("mousemove", new MouseDownCommand(messageService,gameRepository));
+        this.commandMap.put("mouseup", new MouseUpCommand(messageService, gameRepository));
+        this.commandMap.put("artist", new ArtistCommand(messageService, wordRepository, gameRepository));
+        this.commandMap.put("not-artist", new NotArtistCommand(messageService, wordRepository, gameRepository,revealCount));
         this.commandMap.put("newGameRoom", new NewGameCommand(messageService, gameRepository));
         this.commandMap.put("enterRoom", new EnterRoomCommand(messageService, gameRepository));
     }

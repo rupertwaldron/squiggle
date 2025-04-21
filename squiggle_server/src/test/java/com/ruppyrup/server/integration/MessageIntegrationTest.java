@@ -38,6 +38,8 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
     private static final String PLAYER_2 = "Player2";
     private static final String PLAYER_1 = "Player1";
 
+    private static final String GAME_1 = "game1";
+
     @Autowired
     private WordRepository wordRepository;
 
@@ -52,9 +54,10 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
     private int port;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws JsonProcessingException {
         wordRepository.reset();
         gameRepository.clearGames();
+        twoPlayersEnterTheSameRoom();
     }
 
     @AfterEach
@@ -74,8 +77,8 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void nonSendingClientReceives() throws JsonProcessingException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
+//        connectWebsocketClient(port);
+//        connectWebsocketClient(port);
 
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("mousemove")
@@ -85,13 +88,14 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .lineWidth("5")
                 .strokeStyle("red")
                 .isFilled(false)
+                .gameId(GAME_1)
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.ONE_MINUTE)
+                .atMost(Duration.TEN_SECONDS)
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);
@@ -103,21 +107,21 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(drawPoint);
     }
 
+    //todo: fix this test
     @Test
     void serverReceivesMouseUpMessage() throws JsonProcessingException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
 
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("mouseup")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.ONE_MINUTE)
+                .atMost(Duration.TEN_SECONDS)
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);
@@ -251,5 +255,42 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         assertThat(listAppender.list.getFirst().getFormattedMessage())
                 .containsSubsequence("Sending artist change");
+    }
+
+    private void twoPlayersEnterTheSameRoom() throws JsonProcessingException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
+
+        Game game = Game.builder()
+                .gameId(GAME_1)
+                .build();
+
+        gameRepository.addGame(game);
+
+        DrawPoint drawPoint1 = DrawPoint.builder()
+                .action("enterRoom")
+                .playerId(PLAYER_1)
+                .gameId(GAME_1)
+                .build();
+
+        String message1 = mapper.writeValueAsString(drawPoint1);
+        clientEndPoints.getFirst().sendMessage(message1);
+
+        DrawPoint drawPoint2 = DrawPoint.builder()
+                .action("enterRoom")
+                .playerId(PLAYER_2)
+                .gameId(GAME_1)
+                .build();
+
+        String message2 = mapper.writeValueAsString(drawPoint2);
+        clientEndPoints.getLast().sendMessage(message2);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !recievedMessages.isEmpty());
+
+        assertThat(recievedMessages.size()).isEqualTo(2);
+        recievedMessages.remove();
+        recievedMessages.remove();
     }
 }

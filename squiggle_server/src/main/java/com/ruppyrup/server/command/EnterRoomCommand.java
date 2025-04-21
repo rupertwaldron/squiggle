@@ -3,6 +3,7 @@ package com.ruppyrup.server.command;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.model.Game;
+import com.ruppyrup.server.model.Player;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,9 @@ public class EnterRoomCommand implements SquiggleCommand {
             return;
         }
 
-        gameRepository.addPlayerToGame(gameId, playerId);
+        Player newPlayer = new Player(playerId, session);
+
+        gameRepository.addPlayerToGame(gameId, newPlayer);
 
         sendToSender(session, drawPointToSend);
 

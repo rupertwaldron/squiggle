@@ -2,22 +2,28 @@ package com.ruppyrup.server.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
+import com.ruppyrup.server.utils.SessionUtils;
 import com.ruppyrup.server.utils.WordMasker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
+
+import java.util.List;
 
 @Slf4j
 public class NotArtistCommand implements SquiggleCommand {
 
     private final MessageService messageService;
     private final WordRepository wordRepository;
+    private final GameRepository gameRepository;
     private final int revealTriggerPoint;
 
-    public NotArtistCommand(MessageService messageService, WordRepository wordRepository, int revealTriggerPoint) {
+    public NotArtistCommand(MessageService messageService, WordRepository wordRepository, GameRepository gameRepository, int revealTriggerPoint) {
         this.messageService = messageService;
         this.wordRepository = wordRepository;
+        this.gameRepository = gameRepository;
         this.revealTriggerPoint = revealTriggerPoint;
     }
 
@@ -27,15 +33,16 @@ public class NotArtistCommand implements SquiggleCommand {
             log.info("Word repository is not set {} on thread {}", drawPoint, Thread.currentThread());
             return;
         }
+        List<WebSocketSession> sessions = SessionUtils.getGameSessions(drawPoint, gameRepository);
 
         if (wordRepository.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
-            handleWinner(drawPoint);
+            handleWinner(drawPoint, sessions);
         } else {
-            handleRetry(drawPoint);
+            handleRetry(drawPoint, sessions);
         }
     }
 
-    private void handleRetry(DrawPoint drawPoint) {
+    private void handleRetry(DrawPoint drawPoint, List<WebSocketSession> sessions) {
         wordRepository.incrementGuessCount();
         if (wordRepository.getGuessCount() >= revealTriggerPoint) {
             log.info("Reveal another letter {} on thread {}", drawPoint, Thread.currentThread());
@@ -48,8 +55,9 @@ public class NotArtistCommand implements SquiggleCommand {
                     .playerId(drawPoint.playerId())
                     .guessWord(maskedWord)
                     .build();
+
             try {
-                messageService.sendInfoToAll(drawPointToSend.toJson());
+                messageService.sendInfoToSessions(sessions, drawPointToSend.toJson());
                 wordRepository.setGuessCount(0);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -57,19 +65,17 @@ public class NotArtistCommand implements SquiggleCommand {
         }
     }
 
-    private void handleWinner(DrawPoint drawPoint) {
+    private void handleWinner(DrawPoint drawPoint, List<WebSocketSession> sessions) {
         log.info("Correct guess {} on thread {}", drawPoint, Thread.currentThread());
         DrawPoint winnerDrawPoint = DrawPoint.builder()
                 .action("winner")
                 .playerId(drawPoint.playerId())
                 .guessWord(wordRepository.getGuessWord())
                 .build();
+
         try {
-            messageService.sendInfoToAll(winnerDrawPoint.toJson());
-            wordRepository.setIsReady(false);
-            wordRepository.resetRevealCount();
-            wordRepository.setGuessWord(null);
-            wordRepository.setGuessCount(0);
+            messageService.sendInfoToSessions(sessions, winnerDrawPoint.toJson());
+            wordRepository.reset();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

@@ -3,12 +3,10 @@ package com.ruppyrup.server.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.integration.config.LoggingExtension;
-import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.model.Game;
-import com.ruppyrup.server.model.Player;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
@@ -23,21 +21,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
 import static com.ruppyrup.server.integration.TestUtils.mapper;
-import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=2"})
 @ExtendWith(LoggingExtension.class)
-public class GameRoomIntegrationTest implements WebSocketClientTrait {
+public class GameIdIntegrationTest implements WebSocketClientTrait {
     private static final String PLAYER_2 = "Player2";
     private static final String PLAYER_1 = "Player1";
+
+    private static final String GAME_1 = "game1";
+    private static final String GAME_2 = "game2";
 
     @Autowired
     private WordRepository wordRepository;
@@ -71,19 +68,18 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
     }
 
     @Test
-    void playerCanEnterAGame() throws JsonProcessingException {
-        connectWebsocketClient(port);
-
-        Game game = Game.builder()
-                .gameId("cde")
-                .build();
-
-        gameRepository.addGame(game);
+    void playerReceivesMessagesFromSameGame() throws JsonProcessingException {
+        twoPlayersEnterTheSameRoom();
 
         DrawPoint drawPoint = DrawPoint.builder()
-                .action("enterRoom")
+                .action("mousemove")
                 .playerId(PLAYER_1)
-                .gameId("cde")
+                .x(1000)
+                .y(0)
+                .lineWidth("5")
+                .strokeStyle("red")
+                .isFilled(false)
+                .gameId(GAME_1)
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
@@ -92,121 +88,114 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
         await()
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !recievedMessages.isEmpty());
-
-        assertThat(recievedMessages.size()).isEqualTo(1);
 
         DrawPoint received = getMessage(recievedMessages.poll());
 
         assertThat(received)
                 .usingRecursiveComparison()
                 .isEqualTo(drawPoint);
-
-        List<String> playerIds = game.players().stream()
-                .map(Player::playerId)
-                .toList();
-
-        assertThat(playerIds).contains(PLAYER_1);
     }
 
-    @LoggingExtensionConfig("com.ruppyrup.server.command.NewGameCommand")
     @Test
-    void serverReceivesNewGameCommandWhenNewGameRequested() throws JsonProcessingException, InterruptedException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
-        Game game = Game.builder()
-                .gameId("xyz")
-                .build();
+    void playerDoesNotReceiveMessagesFromDifferentGame() throws JsonProcessingException {
+        twoPlayersEnterDifferentRooms();
 
         DrawPoint drawPoint = DrawPoint.builder()
-                .action("newGameRoom")
-                .gameId("xyz")
+                .action("mousemove")
+                .playerId(PLAYER_1)
+                .x(1000)
+                .y(0)
+                .lineWidth("5")
+                .strokeStyle("red")
+                .isFilled(false)
                 .build();
-        String message = mapper.writeValueAsString(drawPoint);
 
+        String message = mapper.writeValueAsString(drawPoint);
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
                 .atMost(Duration.TEN_SECONDS)
-                .until(() -> !listAppender.list.isEmpty());
-
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("New game with Id xyz");
-        assertThat(gameRepository.getGames().size()).isEqualTo(1);
-        assertThat(gameRepository.getGames().getFirst().gameId()).isEqualTo(game.gameId());
+                .pollDelay(Duration.FIVE_SECONDS)
+                .pollInterval(Duration.ONE_SECOND)
+                .until(recievedMessages::isEmpty);
     }
 
-    @LoggingExtensionConfig("com.ruppyrup.server.command.EnterRoomCommand")
-    @Test
-    void serverReceivesEnterRoomCommandWhenJoiningGame() throws JsonProcessingException, InterruptedException {
+    private void twoPlayersEnterTheSameRoom() throws JsonProcessingException {
         connectWebsocketClient(port);
         connectWebsocketClient(port);
 
         Game game = Game.builder()
-                .gameId("xyz")
-                .players(new ArrayList<>())
+                .gameId(GAME_1)
                 .build();
 
         gameRepository.addGame(game);
 
-        DrawPoint drawPoint = DrawPoint.builder()
+        DrawPoint drawPoint1 = DrawPoint.builder()
                 .action("enterRoom")
-                .gameId("xyz")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
 
-        String message = mapper.writeValueAsString(drawPoint);
+        String message1 = mapper.writeValueAsString(drawPoint1);
+        clientEndPoints.getFirst().sendMessage(message1);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        DrawPoint drawPoint2 = DrawPoint.builder()
+                .action("enterRoom")
+                .playerId(PLAYER_2)
+                .gameId(GAME_1)
+                .build();
+
+        String message2 = mapper.writeValueAsString(drawPoint2);
+        clientEndPoints.getLast().sendMessage(message2);
 
         await()
                 .atMost(Duration.TEN_SECONDS)
-                .until(() -> !listAppender.list.isEmpty());
-
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Player with Id Player1 entered game with Id xyz");
-
-        assertThat(gameRepository.getGames().size()).isEqualTo(1);
-        assertThat(gameRepository.getGames().getFirst().gameId()).isEqualTo(game.gameId());
-        assertThat(gameRepository.getGames().getFirst().players().getFirst().playerId()).isEqualTo(PLAYER_1);
-    }
-
-    @Test
-    void serverReceivesEnterRoomCommandAndRejectsIfRoomNotValid() throws JsonProcessingException, InterruptedException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
-        Game game = Game.builder()
-                .gameId("xyz")
-                .players(new ArrayList<>())
-                .build();
-
-        gameRepository.addGame(game);
-
-        DrawPoint drawPoint = DrawPoint.builder()
-                .action("enterRoom")
-                .gameId("abc")
-                .playerId(PLAYER_1)
-                .build();
-
-        String message = mapper.writeValueAsString(drawPoint);
-
-        clientEndPoints.getFirst().sendMessage(message);
-
-        await()
-                .atMost(Duration.ONE_MINUTE)
                 .until(() -> !recievedMessages.isEmpty());
 
-        assertThat(recievedMessages.size()).isEqualTo(1);
+        assertThat(recievedMessages.size()).isEqualTo(2);
+        recievedMessages.remove();
+        recievedMessages.remove();
+    }
 
-        DrawPoint received = getMessage(recievedMessages.poll());
+    private void twoPlayersEnterDifferentRooms() throws JsonProcessingException {
+        connectWebsocketClient(port);
+        connectWebsocketClient(port);
 
-        DrawPoint invalid = drawPoint.toBuilder()
-                .gameId("Invalid")
+        Game game1 = Game.builder()
+                .gameId(GAME_1)
                 .build();
 
-        assertThat(received)
-                .usingRecursiveComparison()
-                .isEqualTo(invalid);
+        Game game2 = Game.builder()
+                .gameId(GAME_2)
+                .build();
+
+        gameRepository.addGame(game1);
+        gameRepository.addGame(game2);
+
+        DrawPoint drawPoint1 = DrawPoint.builder()
+                .action("enterRoom")
+                .playerId(PLAYER_1)
+                .gameId(GAME_1)
+                .build();
+
+        String message1 = mapper.writeValueAsString(drawPoint1);
+        clientEndPoints.getFirst().sendMessage(message1);
+
+        DrawPoint drawPoint2 = DrawPoint.builder()
+                .action("enterRoom")
+                .playerId(PLAYER_2)
+                .gameId(GAME_2)
+                .build();
+
+        String message2 = mapper.writeValueAsString(drawPoint2);
+        clientEndPoints.getLast().sendMessage(message2);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !recievedMessages.isEmpty());
+
+        assertThat(recievedMessages.size()).isEqualTo(2);
+        recievedMessages.remove();
+        recievedMessages.remove();
     }
 }

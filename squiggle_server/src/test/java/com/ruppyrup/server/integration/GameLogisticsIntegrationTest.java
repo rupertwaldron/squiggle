@@ -129,7 +129,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
         assertThat(gameRepository.getGames().size()).isEqualTo(1);
         assertThat(gameRepository.getGames().getFirst().gameId()).isEqualTo(game.gameId());
-        assertThat(gameRepository.getGames().getFirst().players()).contains(PLAYER_1);
+        assertThat(gameRepository.getGames().getFirst().players().getFirst().playerId()).isEqualTo(PLAYER_1);
     }
 
     @Test

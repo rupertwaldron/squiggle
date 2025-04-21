@@ -1,10 +1,10 @@
 package com.ruppyrup.server.repository;
 
 import com.ruppyrup.server.model.Game;
+import com.ruppyrup.server.model.Player;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 public class GameRepository {
@@ -30,7 +30,7 @@ public class GameRepository {
         games.clear();
     }
 
-    public void addPlayerToGame(String gameId, String playerId) {
+    public void addPlayerToGame(String gameId, Player playerId) {
         Game game = getGameById(gameId);
         if (game != null) {
             game.addPlayer(playerId);
