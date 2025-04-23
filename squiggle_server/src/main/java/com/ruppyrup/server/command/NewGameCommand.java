@@ -22,12 +22,10 @@ public class NewGameCommand implements SquiggleCommand {
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        Game game = Game.builder()
-                .gameId(drawPoint.gameId())
-                .build();
+        Game game = new Game(drawPoint.gameId());
 
         gameRepository.addGame(game);
 
-        log.info("New game with Id {} added on thread {}", game.gameId(), Thread.currentThread());
+        log.info("New game with Id {} added on thread {}", game.getGameId(), Thread.currentThread());
     }
 }

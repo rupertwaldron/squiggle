@@ -38,8 +38,6 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=2"})
 @ExtendWith(LoggingExtension.class)
 public class GuessWordIntegrationTest implements WebSocketClientTrait {
-    private static final String PLAYER_2 = "Player2";
-    private static final String PLAYER_1 = "Player1";
 
     @Autowired
     private WordRepository wordRepository;
@@ -55,15 +53,17 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
     private int port;
 
     @BeforeEach
-    void setup() {
+    void setup() throws JsonProcessingException {
         wordRepository.reset();
         gameRepository.clearGames();
+        twoPlayersEnterTheSameRoom(GAME_1, port, PLAYER_1, PLAYER_2, gameRepository);
     }
     @AfterEach
     void closeConnection() {
         clientEndPoints.forEach(this::closeSession);
         clientEndPoints.clear();
         recievedMessages.clear();
+        listAppender.list.clear();
     }
 
     @SneakyThrows
@@ -73,13 +73,11 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void serverReceivesGuessWordWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("artist")
                 .guessWord("Monkey")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
@@ -94,9 +92,6 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void serverReceivesWinnerStatusWhenWordGuessed() throws JsonProcessingException, InterruptedException, JSONException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
         wordRepository.setGuessWord("Monkey");
         wordRepository.setIsReady(true);
 
@@ -104,6 +99,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .action("not-artist")
                 .guessWord("Monkey")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
@@ -130,13 +126,11 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void participantReceivesMaskedGuessWord() throws JsonProcessingException, InterruptedException, JSONException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("artist")
                 .guessWord("Monkey")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
@@ -150,6 +144,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .action("artist")
                 .guessWord("******")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
 
         assertThat(getMessage(recievedMessages.poll()))
@@ -160,13 +155,11 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
     @LoggingExtensionConfig("com.ruppyrup.server.command.NotArtistCommand")
     @Test
     void participantReceivesNoMaskedWordIsArtisCommandNotRun() throws JsonProcessingException, InterruptedException, JSONException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("not-artist")
                 .guessWord("Invalid")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
@@ -186,14 +179,12 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void participantReceivesMaskedWordWithRevealedCharsAfterXGuesses() throws JsonProcessingException, InterruptedException, JSONException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
-
         String guessWord = "Monkey";
         DrawPoint artistDrawPoint = DrawPoint.builder()
                 .action("artist")
                 .guessWord(guessWord)
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
 
         String message = mapper.writeValueAsString(artistDrawPoint);
@@ -204,7 +195,9 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .action("not-artist")
                 .guessWord("Invalid")
                 .playerId(PLAYER_1)
+                .gameId(GAME_1)
                 .build();
+
         message = mapper.writeValueAsString(drawPoint);
 
         for (int i = 0; i < revealCount * 6; i++) {

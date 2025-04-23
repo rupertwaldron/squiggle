@@ -9,6 +9,8 @@ import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.List;
+
 @Slf4j
 public class EnterRoomCommand implements SquiggleCommand {
 
@@ -51,7 +53,7 @@ public class EnterRoomCommand implements SquiggleCommand {
 
     private void sendToSender(WebSocketSession session, DrawPoint drawPointToSend) {
         try {
-            messageService.sendInfoBackToSender(session, drawPointToSend.toJson());
+            messageService.sendInfoToSessions(List.of(session), drawPointToSend.toJson());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

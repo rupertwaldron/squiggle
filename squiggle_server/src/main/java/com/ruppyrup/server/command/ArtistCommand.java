@@ -3,16 +3,15 @@ package com.ruppyrup.server.command;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.model.Game;
-import com.ruppyrup.server.model.Player;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
-import com.ruppyrup.server.utils.SessionUtils;
 import com.ruppyrup.server.utils.WordMasker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class ArtistCommand implements SquiggleCommand {
@@ -40,14 +39,17 @@ public class ArtistCommand implements SquiggleCommand {
                 .action(drawPoint.action())
                 .playerId(drawPoint.playerId())
                 .guessWord(maskedWord)
+                .gameId(drawPoint.gameId())
                 .build();
 
-        if (!gameRepository.gameExists(drawPoint.gameId())) {
-            log.info("Game with Id does not exist");
+        List<WebSocketSession> sessions = getGameSessions(drawPoint, gameRepository);
+
+        if (sessions.isEmpty()) {
+            log.warn("No sessions found for game id {} on thread {}", drawPoint.gameId(), Thread.currentThread());
             return;
         }
 
-        List<WebSocketSession> sessions = SessionUtils.getGameSessions(drawPoint,gameRepository);
+        sessions.remove(session);
 
         try {
             messageService.sendInfoToSessions(sessions, drawPointToSend.toJson());

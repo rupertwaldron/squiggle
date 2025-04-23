@@ -2,15 +2,16 @@ package com.ruppyrup.server.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
-import com.ruppyrup.server.utils.SessionUtils;
 import com.ruppyrup.server.utils.WordMasker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class NotArtistCommand implements SquiggleCommand {
@@ -33,7 +34,12 @@ public class NotArtistCommand implements SquiggleCommand {
             log.info("Word repository is not set {} on thread {}", drawPoint, Thread.currentThread());
             return;
         }
-        List<WebSocketSession> sessions = SessionUtils.getGameSessions(drawPoint, gameRepository);
+        List<WebSocketSession> sessions = getGameSessions(drawPoint, gameRepository);
+
+        if (sessions.isEmpty()) {
+            log.warn("No sessions found for game id {} on thread {}", drawPoint.gameId(), Thread.currentThread());
+            return;
+        }
 
         if (wordRepository.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
             handleWinner(drawPoint, sessions);

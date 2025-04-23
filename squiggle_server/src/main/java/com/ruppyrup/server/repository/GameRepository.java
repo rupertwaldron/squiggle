@@ -5,25 +5,28 @@ import com.ruppyrup.server.model.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class GameRepository {
-    private final List<Game> games = new ArrayList<>();
+    private final Map<String, Game> games = new ConcurrentHashMap<>();
 
     public List<Game> getGames() {
-        return new ArrayList<>(games);
+        return new ArrayList<>(games.values());
     }
 
     public void addGame(Game game) {
-        games.add(game);
+        games.put(game.getGameId(), game);
     }
 
     public boolean gameExists(String gameId) {
-        return games.stream().anyMatch(game -> game.gameId().equals(gameId));
+        return games.containsKey(gameId);
     }
 
     public void removeGame(Game game) {
-        games.remove(game);
+        games.remove(game.getGameId());
     }
 
     public void clearGames() {
@@ -34,15 +37,13 @@ public class GameRepository {
         Game game = getGameById(gameId);
         if (game != null) {
             game.addPlayer(playerId);
+
         } else {
             throw new IllegalArgumentException("Game with ID " + gameId + " does not exist.");
         }
     }
 
     public Game getGameById(String gameId) {
-        return games.stream()
-                .filter(game -> game.gameId().equals(gameId))
-                .findFirst()
-                .orElse(null);
+        return games.get(gameId);
     }
 }
