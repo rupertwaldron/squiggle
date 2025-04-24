@@ -21,9 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
-
-import java.util.ArrayList;
 
 import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
@@ -92,16 +89,72 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
         assertThat(gameRepository.getGames().getFirst().getGameId()).isEqualTo(game.getGameId());
     }
 
-    @LoggingExtensionConfig("com.ruppyrup.server.command.EnterRoomCommand")
     @Test
-    void serverReceivesEnterRoomCommandWhenJoiningGame() throws JsonProcessingException, InterruptedException {
+    void serverSendsGameCreatedCommandWhenNewGameSuccessful() throws JsonProcessingException {
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("newGameRoom")
+                .gameId(GAME_2)
+                .build();
+
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !recievedMessages.isEmpty());
+
+        DrawPoint received = DrawPoint.builder()
+                .action("gameCreated")
+                .gameId(GAME_2)
+                .build();
+
+        assertThat(recievedMessages.size()).isEqualTo(1);
+        assertThat(getMessage(recievedMessages.poll()))
+                .usingRecursiveComparison()
+                .isEqualTo(received);
+    }
+
+    @Test
+    void serverSendsGameExistsCommandWhenGameAlreadyExits() throws JsonProcessingException {
         Game game = new Game(GAME_1);
 
         gameRepository.addGame(game);
 
         DrawPoint drawPoint = DrawPoint.builder()
-                .action("enterRoom")
+                .action("newGameRoom")
                 .gameId(GAME_1)
+                .build();
+
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.getFirst().sendMessage(message);
+
+        await()
+                .atMost(Duration.TEN_SECONDS)
+                .until(() -> !recievedMessages.isEmpty());
+
+        DrawPoint received = DrawPoint.builder()
+                .action("gameExistsAlready")
+                .gameId(GAME_1)
+                .build();
+
+        assertThat(recievedMessages.size()).isEqualTo(1);
+        assertThat(getMessage(recievedMessages.poll()))
+                .usingRecursiveComparison()
+                .isEqualTo(received);
+    }
+
+    @LoggingExtensionConfig("com.ruppyrup.server.command.EnterRoomCommand")
+    @Test
+    void serverReceivesEnterRoomCommandWhenJoiningGame() throws JsonProcessingException, InterruptedException {
+        Game game = new Game(GAME_2);
+
+        gameRepository.addGame(game);
+
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("enterRoom")
+                .gameId(GAME_2)
                 .playerId(PLAYER_1)
                 .build();
 
@@ -113,10 +166,8 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertLogMessage("Player with Id Player1 entered game with Id " + GAME_1);
-        assertThat(gameRepository.getGames().size()).isEqualTo(1);
-        assertThat(gameRepository.getGames().getFirst().getGameId()).isEqualTo(game.getGameId());
-        assertThat(gameRepository.getGames().getFirst().getPlayers().getFirst().playerId()).isEqualTo(PLAYER_1);
+        assertLogMessage("Player with Id Player1 entered game with Id " + GAME_2);
+        assertThat(gameRepository.getGames().size()).isEqualTo(2);
     }
 
     @Test

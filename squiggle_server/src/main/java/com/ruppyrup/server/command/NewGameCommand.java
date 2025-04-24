@@ -9,6 +9,8 @@ import com.ruppyrup.server.utils.WordMasker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.List;
+
 @Slf4j
 public class NewGameCommand implements SquiggleCommand {
 
@@ -22,10 +24,30 @@ public class NewGameCommand implements SquiggleCommand {
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        Game game = new Game(drawPoint.gameId());
+        String gameId = drawPoint.gameId();
+        DrawPoint drawPointToSend = DrawPoint.builder()
+                .action("invalid")
+                .gameId(gameId)
+                .build();
 
-        gameRepository.addGame(game);
+        if (gameRepository.gameExists(gameId)) {
+            log.info("Game with Id {} already exists on thread {}", gameId, Thread.currentThread());
+            drawPointToSend = drawPointToSend.toBuilder()
+                    .action("gameExistsAlready")
+                    .build();
+        } else {
+            Game game = new Game(gameId);
+            gameRepository.addGame(game);
+            drawPointToSend = drawPointToSend.toBuilder()
+                    .action("gameCreated")
+                    .build();
+            log.info("New game with Id {} added on thread {}", gameId, Thread.currentThread());
+        }
 
-        log.info("New game with Id {} added on thread {}", game.getGameId(), Thread.currentThread());
+        try {
+            messageService.sendInfoToSessions(List.of(session), drawPointToSend.toJson());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -18,7 +18,7 @@ public class GameRepository {
     }
 
     public void addGame(Game game) {
-        games.put(game.getGameId(), game);
+        games.putIfAbsent(game.getGameId(), game);
     }
 
     public boolean gameExists(String gameId) {
