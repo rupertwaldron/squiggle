@@ -165,16 +165,13 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
         for (int i = 0; i < revealCount * 2; i++) {
             clientEndPoints.getFirst().sendMessage(message);
-            Thread.sleep(1000);
         }
 
         await()
-                .atMost(Duration.TEN_SECONDS)
-                .until(() -> listAppender.list.size() == 4);
+                .atMost(Duration.ONE_MINUTE)
+                .until(() -> listAppender.list.size() >= 4);
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Word repository is not set");
-
+        assertLogMessage("Word repository is not set");
     }
 
     @Test

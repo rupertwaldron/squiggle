@@ -8,6 +8,6 @@ import org.springframework.web.socket.WebSocketSession;
 public class NullCommand implements SquiggleCommand {
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        log.warn("Null commamd triggered {} on thread {}", drawPoint, Thread.currentThread());
+        log.warn("Null command triggered {} on thread {}", drawPoint, Thread.currentThread());
     }
 }

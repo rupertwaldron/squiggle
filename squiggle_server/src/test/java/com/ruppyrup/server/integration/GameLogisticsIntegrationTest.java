@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 
+import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
 import static com.ruppyrup.server.integration.TestUtils.mapper;
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
@@ -86,8 +87,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("New game with Id " + GAME_1);
+        assertLogMessage("New game with Id " + GAME_1);
         assertThat(gameRepository.getGames().size()).isEqualTo(1);
         assertThat(gameRepository.getGames().getFirst().getGameId()).isEqualTo(game.getGameId());
     }
@@ -113,9 +113,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Player with Id Player1 entered game with Id " + GAME_1);
-
+        assertLogMessage("Player with Id Player1 entered game with Id " + GAME_1);
         assertThat(gameRepository.getGames().size()).isEqualTo(1);
         assertThat(gameRepository.getGames().getFirst().getGameId()).isEqualTo(game.getGameId());
         assertThat(gameRepository.getGames().getFirst().getPlayers().getFirst().playerId()).isEqualTo(PLAYER_1);

@@ -7,7 +7,6 @@ import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
-import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
@@ -23,8 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-
+import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
 import static com.ruppyrup.server.integration.TestUtils.mapper;
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
@@ -67,9 +65,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
     private void closeSession(WebsocketClientEndpoint clientEndPoint) {
         clientEndPoint.getUserSession().close(new CloseReason(NORMAL_CLOSURE, "Finished test"));
     }
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     @Test
     void nonSendingClientReceives() throws JsonProcessingException {
@@ -125,7 +120,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(drawPoint);
     }
 
-    //todo : this test is flakey - not going into safe send
     @Test
     void serverReceivesArtistMessage() throws JsonProcessingException {
         DrawPoint drawPoint = DrawPoint.builder()
@@ -175,10 +169,8 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Null commamd triggered DrawPoint");
+        assertLogMessage("Null command triggered DrawPoint");
     }
-
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.NotArtistCommand")
     @Test
@@ -196,8 +188,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Word repository is not set DrawPoint");
+        assertLogMessage("Word repository is not set DrawPoint");
     }
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.MouseUpCommand")
@@ -216,8 +207,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Sending mouse up command");
+        assertLogMessage("Sending mouse up command");
     }
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.ArtistCommand")
@@ -237,7 +227,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.TEN_SECONDS)
                 .until(() -> !listAppender.list.isEmpty());
 
-        assertThat(listAppender.list.getFirst().getFormattedMessage())
-                .containsSubsequence("Sending artist change");
+        assertLogMessage("Sending artist change");
     }
 }
