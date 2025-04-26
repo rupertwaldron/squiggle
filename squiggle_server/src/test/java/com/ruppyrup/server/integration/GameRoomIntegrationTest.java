@@ -13,7 +13,6 @@ import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 
 import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
@@ -88,7 +87,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);
@@ -122,12 +121,17 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("New game with Id " + GAME_1);
         assertThat(gameRepository.getGames().size()).isEqualTo(1);
         assertThat(gameRepository.getGames().getFirst().getGameId()).isEqualTo(game.getGameId());
+    }
+
+    @Test
+    void test() {
+        assertThat(revealCount).isEqualTo(2);
     }
 
     @LoggingExtensionConfig("com.ruppyrup.server.command.EnterRoomCommand")
@@ -150,7 +154,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("Player with Id Player1 entered game with Id " + GAME_1);
@@ -178,7 +182,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.ONE_MINUTE)
+                .atMost(Duration.ofSeconds(60))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);

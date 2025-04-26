@@ -2,19 +2,16 @@ package com.ruppyrup.server.integration;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.ruppyrup.server.integration.config.LoggingExtension;
 import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
-import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
-import org.awaitility.Duration;
 import org.json.JSONException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 
-import static com.ruppyrup.server.integration.TestUtils.*;
+import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
+import static com.ruppyrup.server.integration.TestUtils.getMessage;
+import static com.ruppyrup.server.integration.TestUtils.mapper;
 import static com.ruppyrup.server.integration.config.LoggingExtension.listAppender;
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,7 +82,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> wordRepository.getGuessWord().equals("Monkey") &&
                         wordRepository.getMaskedWord().equals("******") &&
                         recievedMessages.size() == 1);
@@ -106,7 +104,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> recievedMessages.size() == 2);
 
         DrawPoint expected = DrawPoint.builder()
@@ -137,7 +135,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> recievedMessages.size() == 1);
 
         DrawPoint expected = DrawPoint.builder()
@@ -168,7 +166,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         }
 
         await()
-                .atMost(Duration.ONE_MINUTE)
+                .atMost(Duration.ofSeconds(60))
                 .until(() -> listAppender.list.size() >= 4);
 
         assertLogMessage("Word repository is not set");
@@ -202,7 +200,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         }
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> recievedMessages.size() >= 12);
 
         List<Integer> list = recievedMessages.stream()

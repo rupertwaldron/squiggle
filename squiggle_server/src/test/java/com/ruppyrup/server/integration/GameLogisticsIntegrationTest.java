@@ -12,7 +12,6 @@ import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+
+import java.time.Duration;
 
 import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
@@ -81,7 +82,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("New game with Id " + GAME_1);
@@ -101,7 +102,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         DrawPoint received = DrawPoint.builder()
@@ -131,7 +132,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         DrawPoint received = DrawPoint.builder()
@@ -163,7 +164,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("Player with Id Player1 entered game with Id " + GAME_2);
@@ -187,7 +188,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.ONE_MINUTE)
+                .atMost(Duration.ofSeconds(60))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);

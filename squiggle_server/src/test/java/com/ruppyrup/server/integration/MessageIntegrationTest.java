@@ -11,7 +11,6 @@ import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
+
+import java.time.Duration;
 
 import static com.ruppyrup.server.integration.TestUtils.assertLogMessage;
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
@@ -83,7 +83,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);
@@ -108,7 +108,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);
@@ -133,7 +133,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.ONE_MINUTE)
+                .atMost(Duration.ofSeconds(40))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(1);
@@ -166,7 +166,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("Null command triggered DrawPoint");
@@ -185,7 +185,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("Word repository is not set DrawPoint");
@@ -204,7 +204,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("Sending mouse up command");
@@ -224,7 +224,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !listAppender.list.isEmpty());
 
         assertLogMessage("Sending artist change");

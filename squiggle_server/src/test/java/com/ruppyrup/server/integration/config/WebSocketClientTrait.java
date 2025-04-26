@@ -4,10 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
-import org.awaitility.Duration;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -72,7 +72,7 @@ public interface WebSocketClientTrait {
         clientEndPoints.getLast().sendMessage(message2);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         assertThat(recievedMessages.size()).isEqualTo(2);

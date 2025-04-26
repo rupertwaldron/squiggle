@@ -6,12 +6,10 @@ import com.ruppyrup.server.integration.config.LoggingExtension;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
-import com.ruppyrup.server.model.Game;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
 import lombok.SneakyThrows;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+
+import java.time.Duration;
 
 import static com.ruppyrup.server.integration.TestUtils.getMessage;
 import static com.ruppyrup.server.integration.TestUtils.mapper;
@@ -81,7 +81,7 @@ public class GameIdIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
         DrawPoint received = getMessage(recievedMessages.poll());
@@ -108,9 +108,9 @@ public class GameIdIntegrationTest implements WebSocketClientTrait {
         clientEndPoints.getFirst().sendMessage(message);
 
         await()
-                .atMost(Duration.TEN_SECONDS)
-                .pollDelay(Duration.FIVE_SECONDS)
-                .pollInterval(Duration.ONE_SECOND)
+                .atMost(Duration.ofSeconds(10))
+                .pollDelay(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofSeconds(1))
                 .until(recievedMessages::isEmpty);
     }
 }
