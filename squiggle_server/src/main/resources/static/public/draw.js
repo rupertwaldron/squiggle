@@ -26,7 +26,8 @@ const draw = (e) => {
         y: e.clientY - canvasOffsetY,
         lineWidth: lineWidth,
         strokeStyle: ctx.strokeStyle,
-        isFilled: isFilling
+        isFilled: isFilling,
+        gameId: gameId
     };
 
     sendMessage(JSON.stringify(data));
@@ -47,6 +48,7 @@ canvas.addEventListener('mouseup', e => {
     const data = {
         action: 'mouseup',
         playerId: playerId,
+        gameId: gameId
     }
     sendMessage(JSON.stringify(data));
 });

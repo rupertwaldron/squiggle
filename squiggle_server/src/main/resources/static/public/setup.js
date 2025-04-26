@@ -88,7 +88,7 @@ toolbar.addEventListener('change', e => {
 
     if (e.target.id === 'guessWord') {
         guessWord = e.target.value;
-        sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId, guessWord: guessWord}));
+        sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId, guessWord: guessWord, gameId: gameId}));
         console.log('Guess word is:', guessWord);
     }
 
@@ -113,7 +113,7 @@ const updateArtistBtn = () => {
     if (isArtist && guessWord) {
         artistButton.style.backgroundColor = 'orange';
         console.log('Artist mode enabled');
-        sendMessage(JSON.stringify({action: 'artist', playerId: playerId, guessWord: guessWord}));
+        sendMessage(JSON.stringify({action: 'artist', playerId: playerId, guessWord: guessWord, gameId: gameId}));
     } else {
         artistButton.style.backgroundColor = 'grey';
         console.log('Artist mode disabled');

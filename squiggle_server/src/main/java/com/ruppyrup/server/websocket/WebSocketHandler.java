@@ -13,24 +13,20 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
 public class WebSocketHandler extends TextWebSocketHandler {
-    private final MessageService messageService;
     private final SquiggleCommandFactory squiggleCommandFactory;
 
-    public WebSocketHandler(MessageService messageService, SquiggleCommandFactory squiggleCommandFactory) {
-        this.messageService = messageService;
+    public WebSocketHandler(SquiggleCommandFactory squiggleCommandFactory) {
         this.squiggleCommandFactory = squiggleCommandFactory;
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Session established with principle {} at {}", session.getPrincipal(), session.getRemoteAddress());
-//        messageService.addSession(session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        super.afterConnectionClosed(session, status);
-//        messageService.removeSession(session);
+        log.info("Session closed with principle {} at {}", session.getPrincipal(), session.getRemoteAddress());
     }
 
     @Override
@@ -40,5 +36,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
         DrawPoint drawPoint = Jsonisable.fromJson(message.getPayload(), DrawPoint.class);
 
         squiggleCommandFactory.getCommand(drawPoint.action()).execute(session, drawPoint);
+    }
+
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+        log.info("Session error with principle {} at {}", session.getPrincipal(), session.getRemoteAddress());
     }
 }

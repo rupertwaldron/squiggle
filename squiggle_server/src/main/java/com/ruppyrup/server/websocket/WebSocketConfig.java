@@ -25,7 +25,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new WebSocketHandler(messageService(), squiggleCommandFactory()),
+        registry.addHandler(new WebSocketHandler(squiggleCommandFactory()),
                 "/websocket").setAllowedOrigins("*");
     }
 
