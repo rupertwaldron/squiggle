@@ -29,11 +29,11 @@ public class Game implements Jsonisable {
 
     public void removePlayer(Player playerId) {
         playerSessions.remove(playerId);
-//        try (WebSocketSession remove = playerSessions.remove(playerId)) {
-//            log.info("Removed player {} from game {} on thread {}", remove.getId(), gameId, Thread.currentThread());
-//        } catch (Exception e) {
-//            log.error("Error removing player {} from game {}: {}", playerId, gameId, e.getMessage());
-//        }
+        try (WebSocketSession remove = playerSessions.remove(playerId)) {
+            log.info("Removed player {} from game {} on thread {}", remove.getId(), gameId, Thread.currentThread());
+        } catch (Exception e) {
+            log.error("Error removing player {} from game {}: {}", playerId, gameId, e.getMessage());
+        }
     }
 
     public boolean isPlayerInGame(Player playerId) {
