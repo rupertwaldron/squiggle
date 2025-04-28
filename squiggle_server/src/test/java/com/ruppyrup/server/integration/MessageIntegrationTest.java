@@ -95,7 +95,6 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(drawPoint);
     }
 
-    //todo: fix this test
     @Test
     void serverReceivesMouseUpMessage() throws JsonProcessingException {
         DrawPoint drawPoint = DrawPoint.builder()
