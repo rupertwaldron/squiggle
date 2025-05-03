@@ -61,6 +61,7 @@ public class NotArtistCommand implements SquiggleCommand {
                     .action("reveal")
                     .playerId(drawPoint.playerId())
                     .guessWord(maskedWord)
+                    .gameId(drawPoint.gameId())
                     .build();
 
             try {
@@ -78,6 +79,7 @@ public class NotArtistCommand implements SquiggleCommand {
                 .action("winner")
                 .playerId(drawPoint.playerId())
                 .guessWord(guessWord.getGuessWord())
+                .gameId(drawPoint.gameId())
                 .build();
 
         try {
