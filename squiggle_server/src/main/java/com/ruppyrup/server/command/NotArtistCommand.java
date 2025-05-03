@@ -2,7 +2,7 @@ package com.ruppyrup.server.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
-import com.ruppyrup.server.model.Game;
+import com.ruppyrup.server.model.GuessWord;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import com.ruppyrup.server.service.MessageService;
@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 public class NotArtistCommand implements SquiggleCommand {
@@ -30,7 +29,9 @@ public class NotArtistCommand implements SquiggleCommand {
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-        if (wordRepository.getGuessWord() == null || !wordRepository.isReady()) {
+        String gameId = drawPoint.gameId();
+        GuessWord guessWord = wordRepository.getWord(gameId);
+        if (guessWord == null || !guessWord.isReady()) {
             log.info("Word repository is not set {} on thread {}", drawPoint, Thread.currentThread());
             return;
         }
@@ -41,20 +42,20 @@ public class NotArtistCommand implements SquiggleCommand {
             return;
         }
 
-        if (wordRepository.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
-            handleWinner(drawPoint, sessions);
+        if (guessWord.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
+            handleWinner(drawPoint, sessions, guessWord);
         } else {
-            handleRetry(drawPoint, sessions);
+            handleRetry(drawPoint, sessions, guessWord);
         }
     }
 
-    private void handleRetry(DrawPoint drawPoint, List<WebSocketSession> sessions) {
-        wordRepository.incrementGuessCount();
-        if (wordRepository.getGuessCount() >= revealTriggerPoint) {
+    private void handleRetry(DrawPoint drawPoint, List<WebSocketSession> sessions, GuessWord guessWord) {
+        guessWord.incrementGuessCount();
+        if (guessWord.getGuessCount() >= revealTriggerPoint) {
             log.info("Reveal another letter {} on thread {}", drawPoint, Thread.currentThread());
-            wordRepository.incrementRevealCount();
-            String maskedWord = WordMasker.getMaskedWord(wordRepository.getGuessWord(), wordRepository.getMaskedWord(), wordRepository.getRevealCount());
-            wordRepository.setMaskedWord(maskedWord);
+            guessWord.incrementRevealCount();
+            String maskedWord = WordMasker.getMaskedWord(guessWord.getGuessWord(), guessWord.getMaskedWord(), guessWord.getRevealCount());
+            guessWord.setMaskedWord(maskedWord);
             log.info("Masked word is {} on thread {}", maskedWord, Thread.currentThread());
             DrawPoint drawPointToSend = DrawPoint.builder()
                     .action("reveal")
@@ -64,24 +65,24 @@ public class NotArtistCommand implements SquiggleCommand {
 
             try {
                 messageService.sendInfoToSessions(sessions, drawPointToSend.toJson());
-                wordRepository.setGuessCount(0);
+                guessWord.setGuessCount(0);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private void handleWinner(DrawPoint drawPoint, List<WebSocketSession> sessions) {
+    private void handleWinner(DrawPoint drawPoint, List<WebSocketSession> sessions, GuessWord guessWord) {
         log.info("Correct guess {} on thread {}", drawPoint, Thread.currentThread());
         DrawPoint winnerDrawPoint = DrawPoint.builder()
                 .action("winner")
                 .playerId(drawPoint.playerId())
-                .guessWord(wordRepository.getGuessWord())
+                .guessWord(guessWord.getGuessWord())
                 .build();
 
         try {
             messageService.sendInfoToSessions(sessions, winnerDrawPoint.toJson());
-            wordRepository.reset();
+            guessWord.reset();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

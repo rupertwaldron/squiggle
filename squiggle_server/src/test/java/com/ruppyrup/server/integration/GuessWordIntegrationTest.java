@@ -8,6 +8,7 @@ import com.ruppyrup.server.integration.config.LoggingExtensionConfig;
 import com.ruppyrup.server.integration.config.WebSocketClientTrait;
 import com.ruppyrup.server.integration.config.WebsocketClientEndpoint;
 import com.ruppyrup.server.model.DrawPoint;
+import com.ruppyrup.server.model.GuessWord;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.repository.WordRepository;
 import jakarta.websocket.CloseReason;
@@ -82,17 +83,28 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
         clientEndPoints.getFirst().sendMessage(message);
 
+
         await()
                 .atMost(Duration.ofSeconds(10))
-                .until(() -> wordRepository.getGuessWord().equals("Monkey") &&
-                        wordRepository.getMaskedWord().equals("******") &&
-                        recievedMessages.size() == 1);
+                .until(() -> !recievedMessages.isEmpty());
+
+        GuessWord guessWord = wordRepository.getWord(GAME_1);
+
+        GuessWord expected = new GuessWord("Monkey");
+        expected.setIsReady(true);
+        expected.setMaskedWord("******");
+
+
+        assertThat(guessWord)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
     @Test
     void serverReceivesWinnerStatusWhenWordGuessed() throws JsonProcessingException, InterruptedException, JSONException {
-        wordRepository.setGuessWord("Monkey");
-        wordRepository.setIsReady(true);
+        wordRepository.addWord(GAME_1, "Monkey");
+        GuessWord guessWord = wordRepository.getWord(GAME_1);
+        guessWord.setIsReady(true);
 
         DrawPoint drawPoint = DrawPoint.builder()
                 .action("not-artist")
@@ -227,10 +239,12 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
         clientEndPoints.getFirst().sendMessage(message);
 
+        GuessWord guessWord = wordRepository.getWord(GAME_1);
+
         await()
                 .atMost(Duration.ofSeconds(10))
-                .until(() -> wordRepository.getGuessWord().equals("Monkey") &&
-                        wordRepository.getMaskedWord().equals("******") &&
+                .until(() -> guessWord.getGuessWord().equals("Monkey") &&
+                        guessWord.getMaskedWord().equals("******") &&
                         recievedMessages.size() == 1);
 
         await()
