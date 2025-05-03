@@ -21,6 +21,8 @@ public interface WebSocketClientTrait {
 
     String PLAYER_2 = "Player2";
     String PLAYER_1 = "Player1";
+    String PLAYER_3 = "Player3";
+    String PLAYER_4 = "Player4";
 
     String GAME_1 = "game1";
     String GAME_2 = "game2";

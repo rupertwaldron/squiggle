@@ -29,7 +29,6 @@ import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-//todo add tests to remove a player from a game when the socket closes
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=2"})
 @ExtendWith(LoggingExtension.class)
 public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
