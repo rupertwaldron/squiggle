@@ -11,8 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WordRepository {
     private final Map<String, GuessWord> guessWords = new ConcurrentHashMap<>();
 
+    //todo - make sure word is set when playing follow on games
     public void addWord(String gameId, String word) {
-        guessWords.putIfAbsent(gameId, new GuessWord(word));
+        guessWords.put(gameId, new GuessWord(word));
     }
 
     public GuessWord getWord(String gameId) {

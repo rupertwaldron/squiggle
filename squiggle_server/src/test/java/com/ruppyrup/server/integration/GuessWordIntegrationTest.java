@@ -330,7 +330,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         String message4 = mapper.writeValueAsString(drawPoint4);
 
         clientEndPoints.getLast().sendMessage(message4);
-//todo only get 2 messages because the word is set for the first game
+
         await()
                 .atMost(Duration.ofSeconds(20))
                 .until(() -> recievedMessages.size() >= 4);
