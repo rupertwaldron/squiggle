@@ -17,7 +17,7 @@ public class GuessWord {
     private final AtomicReference<String> maskedWord = new AtomicReference<>("");
     private final AtomicInteger guessCount = new AtomicInteger(0);
     private final AtomicInteger revealCount = new AtomicInteger(0);
-    private final AtomicBoolean isReady = new AtomicBoolean(false);
+    private final AtomicBoolean isReady = new AtomicBoolean(true);
 
     public GuessWord(String word) {
         this.word = word;

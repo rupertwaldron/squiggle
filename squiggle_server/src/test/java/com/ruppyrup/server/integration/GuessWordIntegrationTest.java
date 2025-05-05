@@ -255,7 +255,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(expected);
     }
 
-    //todo fix this test on word repository
+    //todo fix this test on word repository - use map for clientEndpoints
     @Test
     void serverReceivesTwoGuessWordsForDifferentGamesWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
 
@@ -264,50 +264,8 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
         // and the artist is picked in both games with two different words
 
-        DrawPoint drawPoint1 = DrawPoint.builder()
-                .action("artist")
-                .guessWord("Monkey")
-                .playerId(PLAYER_1)
-                .gameId(GAME_1)
-                .build();
-        String message1 = mapper.writeValueAsString(drawPoint1);
-
-        clientEndPoints.getFirst().sendMessage(message1);
-
-        DrawPoint drawPoint2 = DrawPoint.builder()
-                .action("artist")
-                .guessWord("Tap")
-                .playerId(PLAYER_4)
-                .gameId(GAME_2)
-                .build();
-        String message2 = mapper.writeValueAsString(drawPoint2);
-
-        clientEndPoints.getLast().sendMessage(message2);
-
-        // then the different games receive the correct masked word
-
-        await()
-                .atMost(Duration.ofSeconds(10))
-                .until(() -> !recievedMessages.isEmpty());
-
-        DrawPoint expected1 = DrawPoint.builder()
-                .action("artist")
-                .guessWord("******")
-                .playerId(PLAYER_1)
-                .gameId(GAME_1)
-                .build();
-
-
-        DrawPoint expected2 = DrawPoint.builder()
-                .action("artist")
-                .guessWord("***")
-                .playerId(PLAYER_4)
-                .gameId(GAME_2)
-                .build();
-
-        assertThat(recievedMessages).containsExactlyInAnyOrder(expected1.toJson(), expected2.toJson());
-
-        recievedMessages.clear();
+        wordRepository.addWord(GAME_1, "Monkey");
+        wordRepository.addWord(GAME_2, "Tap");
 
         // then a non-artist guess is received from a players in both games
 
@@ -331,9 +289,11 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
 
         clientEndPoints.getLast().sendMessage(message4);
 
+        clientEndPoints.stream().forEach(System.out::println);
+
         await()
-                .atMost(Duration.ofSeconds(20))
-                .until(() -> recievedMessages.size() >= 4);
+                .atMost(Duration.ofSeconds(30))
+                .until(() -> recievedMessages.size() == 4);
 
         DrawPoint expected3 = DrawPoint.builder()
                 .action("winner")

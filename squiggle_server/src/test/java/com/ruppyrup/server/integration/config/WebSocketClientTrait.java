@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.ruppyrup.server.integration.TestUtils.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +28,7 @@ public interface WebSocketClientTrait {
     String GAME_1 = "game1";
     String GAME_2 = "game2";
 
-    List<WebsocketClientEndpoint> clientEndPoints = new ArrayList<>();
+    List<WebsocketClientEndpoint> clientEndPoints = new CopyOnWriteArrayList<>();
     Queue<String> recievedMessages = new ConcurrentLinkedQueue<>();
 
 
@@ -40,7 +41,7 @@ public interface WebSocketClientTrait {
             // add listener
             clientEndpoint.addMessageHandler(message -> {
                 recievedMessages.add(message);
-                System.out.println("Message received = " + message + " from thread " + Thread.currentThread().getName() + "size = " + recievedMessages.size());
+                System.out.println("Message received = " + message + " from thread " + Thread.currentThread().getName() + "size = " + recievedMessages.size() + " with clients " + clientEndPoints.size());
             });
         } catch (URISyntaxException ex) {
             System.err.println("URISyntaxException exception: " + ex.getMessage());
