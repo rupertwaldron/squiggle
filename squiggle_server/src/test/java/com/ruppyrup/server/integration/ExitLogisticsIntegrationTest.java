@@ -53,7 +53,7 @@ public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
 
     @AfterEach
     void closeConnection() {
-        clientEndPoints.forEach(this::closeSession);
+        clientEndPoints.values().forEach(this::closeSession);
         clientEndPoints.clear();
         recievedMessages.clear();
         listAppender.list.clear();
@@ -70,8 +70,8 @@ public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
                 .atMost(Duration.ofSeconds(5))
                 .until(() -> !gameRepository.getGames().isEmpty());
 
-        clientEndPoints.getFirst().getUserSession().close(new CloseReason(NORMAL_CLOSURE, "Remove Player Test"));
-        clientEndPoints.removeFirst();
+        clientEndPoints.get(PLAYER_1).getUserSession().close(new CloseReason(NORMAL_CLOSURE, "Remove Player Test"));
+        clientEndPoints.remove(PLAYER_1);
 
         await()
                 .atMost(Duration.ofSeconds(5))
@@ -103,7 +103,7 @@ public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))

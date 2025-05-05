@@ -60,7 +60,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
     }
     @AfterEach
     void closeConnection() {
-        clientEndPoints.forEach(this::closeSession);
+        clientEndPoints.values().forEach(this::closeSession);
         clientEndPoints.clear();
         recievedMessages.clear();
         listAppender.list.clear();
@@ -81,7 +81,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -113,7 +113,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -145,7 +145,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -175,7 +175,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         String message = mapper.writeValueAsString(drawPoint);
 
         for (int i = 0; i < revealCount * 2; i++) {
-            clientEndPoints.getFirst().sendMessage(message);
+            clientEndPoints.get(PLAYER_1).sendMessage(message);
         }
 
         await()
@@ -196,7 +196,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(artistDrawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
         Thread.sleep(1000);
 
         DrawPoint drawPoint = DrawPoint.builder()
@@ -209,7 +209,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
         message = mapper.writeValueAsString(drawPoint);
 
         for (int i = 0; i < revealCount * 6; i++) {
-            clientEndPoints.getLast().sendMessage(message);
+            clientEndPoints.get(PLAYER_2).sendMessage(message);
         }
 
         await()
@@ -237,7 +237,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -277,7 +277,7 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message3 = mapper.writeValueAsString(drawPoint3);
 
-        clientEndPoints.getFirst().sendMessage(message3);
+        clientEndPoints.get(PLAYER_1).sendMessage(message3);
 
         DrawPoint drawPoint4 = DrawPoint.builder()
                 .action("not-artist")
@@ -287,9 +287,9 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message4 = mapper.writeValueAsString(drawPoint4);
 
-        clientEndPoints.getLast().sendMessage(message4);
+        clientEndPoints.get(PLAYER_3).sendMessage(message4);
 
-        clientEndPoints.stream().forEach(System.out::println);
+        clientEndPoints.keySet().stream().forEach(System.out::println);
 
         await()
                 .atMost(Duration.ofSeconds(30))

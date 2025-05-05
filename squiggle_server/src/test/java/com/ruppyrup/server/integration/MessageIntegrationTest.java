@@ -55,7 +55,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
     @AfterEach
     void closeConnection() {
-        clientEndPoints.forEach(this::closeSession);
+        clientEndPoints.values().forEach(this::closeSession);
         clientEndPoints.clear();
         recievedMessages.clear();
         listAppender.list.clear();
@@ -80,7 +80,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -104,7 +104,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -129,7 +129,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(40))
@@ -162,7 +162,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -181,7 +181,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -200,7 +200,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -220,7 +220,7 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))

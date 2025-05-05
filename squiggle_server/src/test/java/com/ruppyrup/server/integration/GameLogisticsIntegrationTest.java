@@ -56,7 +56,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
     @AfterEach
     void closeConnection() {
-        clientEndPoints.forEach(this::closeSession);
+        clientEndPoints.values().forEach(this::closeSession);
         clientEndPoints.clear();
         recievedMessages.clear();
         listAppender.list.clear();
@@ -79,7 +79,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -99,7 +99,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -129,7 +129,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -161,7 +161,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -185,7 +185,7 @@ public class GameLogisticsIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(60))

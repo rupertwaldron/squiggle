@@ -10,7 +10,9 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -28,16 +30,16 @@ public interface WebSocketClientTrait {
     String GAME_1 = "game1";
     String GAME_2 = "game2";
 
-    List<WebsocketClientEndpoint> clientEndPoints = new CopyOnWriteArrayList<>();
+    Map<String, WebsocketClientEndpoint> clientEndPoints = new ConcurrentHashMap<>();
     Queue<String> recievedMessages = new ConcurrentLinkedQueue<>();
 
 
-    default void connectWebsocketClient(int port) {
+    default void connectWebsocketClient(int port, String playerId) {
         try {
             // open websocket
             WebsocketClientEndpoint clientEndpoint = new WebsocketClientEndpoint(new URI("ws://localhost:" +
                     port + "/websocket"));
-            clientEndPoints.add(clientEndpoint);
+            clientEndPoints.put(playerId, clientEndpoint);
             // add listener
             clientEndpoint.addMessageHandler(message -> {
                 recievedMessages.add(message);
@@ -49,8 +51,8 @@ public interface WebSocketClientTrait {
     }
 
     default void twoPlayersEnterTheSameRoom(String gameId, int port, String player1, String player2, GameRepository gameRepository) throws JsonProcessingException {
-        connectWebsocketClient(port);
-        connectWebsocketClient(port);
+        connectWebsocketClient(port, player1);
+        connectWebsocketClient(port, player2);
 
         Game game = new Game(gameId);
 
@@ -63,7 +65,7 @@ public interface WebSocketClientTrait {
                 .build();
 
         String message1 = mapper.writeValueAsString(drawPoint1);
-        clientEndPoints.getFirst().sendMessage(message1);
+        clientEndPoints.get(player1).sendMessage(message1);
 
         DrawPoint drawPoint2 = DrawPoint.builder()
                 .action("enterRoom")
@@ -72,7 +74,7 @@ public interface WebSocketClientTrait {
                 .build();
 
         String message2 = mapper.writeValueAsString(drawPoint2);
-        clientEndPoints.getLast().sendMessage(message2);
+        clientEndPoints.get(player2).sendMessage(message2);
 
         await()
                 .atMost(Duration.ofSeconds(10))

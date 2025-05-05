@@ -58,7 +58,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
 
     @AfterEach
     void closeConnection() {
-        clientEndPoints.forEach(this::closeSession);
+        clientEndPoints.values().forEach(this::closeSession);
         clientEndPoints.clear();
         recievedMessages.clear();
         listAppender.list.clear();
@@ -71,7 +71,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void playerCanEnterAGame() throws JsonProcessingException {
-        connectWebsocketClient(port);
+        connectWebsocketClient(port, PLAYER_1);
 
         Game game = new Game(GAME_1);
 
@@ -84,7 +84,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -108,7 +108,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
     @LoggingExtensionConfig("com.ruppyrup.server.command.NewGameCommand")
     @Test
     void serverReceivesNewGameCommandWhenNewGameRequested() throws JsonProcessingException, InterruptedException {
-        connectWebsocketClient(port);
+        connectWebsocketClient(port, PLAYER_1);
 
         Game game = new Game(GAME_1);
 
@@ -118,7 +118,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
                 .build();
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -137,7 +137,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
     @LoggingExtensionConfig("com.ruppyrup.server.command.EnterRoomCommand")
     @Test
     void serverReceivesEnterRoomCommandWhenJoiningGame() throws JsonProcessingException, InterruptedException {
-        connectWebsocketClient(port);
+        connectWebsocketClient(port, PLAYER_1);
 
         Game game = new Game(GAME_1);
 
@@ -151,7 +151,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -165,7 +165,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
 
     @Test
     void serverReceivesEnterRoomCommandAndRejectsIfRoomNotValid() throws JsonProcessingException, InterruptedException {
-        connectWebsocketClient(port);
+        connectWebsocketClient(port, PLAYER_1);
 
         Game game = new Game(GAME_1);
 
@@ -179,7 +179,7 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
 
         String message = mapper.writeValueAsString(drawPoint);
 
-        clientEndPoints.getFirst().sendMessage(message);
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(60))
