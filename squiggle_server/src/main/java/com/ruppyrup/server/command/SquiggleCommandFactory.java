@@ -20,6 +20,7 @@ public class SquiggleCommandFactory {
         this.commandMap.put("newGameRoom", new NewGameCommand(messageService, gameRepository));
         this.commandMap.put("enterRoom", new EnterRoomCommand(messageService, gameRepository));
         this.commandMap.put("exitRoom", new DisconnectCommand(messageService, gameRepository));
+        this.commandMap.put("clearCanvas", new ClearCanvasCommand(messageService, gameRepository));
     }
 
     public SquiggleCommand getCommand(String command) {

@@ -46,26 +46,32 @@ window.onload = function () {
 toolbar.addEventListener('click', e => {
     if (e.target.id === 'startNewGame') {
         setUpRoom();
+        console.log('New game room set up');
     }
 
     if (e.target.id === 'playGame') {
         startGame();
+        console.log('Play button clicked');
     }
 
     if (e.target.id === 'clear') {
-        clearDrawing();
+        if (isArtist) {
+            clearDrawing();
+            sendMessage(JSON.stringify({action: 'clearCanvas', playerId: playerId, gameId: gameId})); // add to code
+            console.log('Canvas cleared');
+        }
     }
 
     if (e.target.id === 'fill') {
         isFilling = !isFilling;
         updateFillBtn();
-        console.log('Canvas cleared');
+        console.log('Fill mode toggled:', isFilling);
     }
 
     if (e.target.id === 'artist') {
         isArtist = !isArtist;
         updateArtistBtn();
-        console.log('Canvas cleared');
+        console.log('Artist mode toggled:', isArtist);
     }
 });
 
@@ -91,7 +97,6 @@ toolbar.addEventListener('change', e => {
         sendMessage(JSON.stringify({action: 'not-artist', playerId: playerId, guessWord: guessWord, gameId: gameId}));
         console.log('Guess word is:', guessWord);
     }
-
 });
 
 const clearDrawing = () => {

@@ -228,4 +228,23 @@ public class MessageIntegrationTest implements WebSocketClientTrait {
 
         assertLogMessage("Sending artist change");
     }
+
+    @LoggingExtensionConfig("com.ruppyrup.server.command.ClearCanvasCommand")
+    @Test
+    void serverReceivesClearCanvasCommandWhenArtistClearsCanvas() throws JsonProcessingException, InterruptedException {
+        DrawPoint drawPoint = DrawPoint.builder()
+                .action("clearCanvas")
+                .playerId(PLAYER_1)
+                .gameId(GAME_1)
+                .build();
+        String message = mapper.writeValueAsString(drawPoint);
+
+        clientEndPoints.get(PLAYER_1).sendMessage(message);
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .until(() -> !listAppender.list.isEmpty());
+
+        assertLogMessage("Sending clear canvas command");
+    }
 }
