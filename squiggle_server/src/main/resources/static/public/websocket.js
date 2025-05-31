@@ -19,6 +19,8 @@ socket.onmessage = async function(event) {
         console.log('Mouse up event received');
     } else if (data.action === 'mousemove') {
         receiveDraw(data);
+    } else if (data.action === 'clearCanvas') {
+        clearDrawing();
     } else if (data.action === 'artist') {
         console.log('Artist is now:', data.playerId);
         isArtist = false;
