@@ -24,21 +24,10 @@ public class MouseDownCommand implements SquiggleCommand {
 
     @Override
     public void execute(WebSocketSession session, DrawPoint drawPoint) {
-
-        List<WebSocketSession> sessions = getGameSessions(drawPoint, gameRepository);
-
-        if (sessions.isEmpty()) {
-            log.warn("No sessions found for game id {} on thread {}", drawPoint.gameId(), Thread.currentThread());
-            return;
-        }
-
-        sessions.remove(session);
-
-        // Handle the draw point here
         try {
-            messageService.sendInfoToSessions(sessions, drawPoint.toJson());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            sendToOtherSessions(session, drawPoint, gameRepository, messageService);
+        } catch (IllegalStateException e) {
+            log.warn("No sessions found for game id {} on thread {}: {}", drawPoint.gameId(), Thread.currentThread(), e.getMessage());
         }
 
         log.info("Sending mouse down command {} on thread {}", drawPoint, Thread.currentThread());

@@ -45,21 +45,12 @@ public class ArtistCommand implements SquiggleCommand {
                 .gameId(gameId)
                 .build();
 
-        List<WebSocketSession> sessions = getGameSessions(drawPoint, gameRepository);
-
-        if (sessions.isEmpty()) {
-            log.warn("No sessions found for game id {} on thread {}", gameId, Thread.currentThread());
-            return;
-        }
-
-        sessions.remove(session);
-
         try {
-            messageService.sendInfoToSessions(sessions, drawPointToSend.toJson());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            sendToOtherSessions(session, drawPointToSend, gameRepository, messageService);
+        } catch (IllegalStateException e) {
+            log.warn("No sessions found for game id {} on thread {}: {}", drawPointToSend.gameId(), Thread.currentThread(), e.getMessage());
         }
 
-        log.info("Sending artist change {} on thread {}", drawPoint, Thread.currentThread());
+        log.info("Sending artist change {} on thread {}", drawPointToSend, Thread.currentThread());
     }
 }

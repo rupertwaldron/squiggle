@@ -48,12 +48,6 @@ public class DisconnectCommand implements SquiggleCommand {
             });
         } else {
             log.info("DrawPoint is not null, find player to remove {}", Thread.currentThread());
-            List<WebSocketSession> sessions = getGameSessions(drawPoint, gameRepository);
-
-            if (sessions.isEmpty()) {
-                log.warn("No sessions found for game id {} on thread {}", drawPoint.gameId(), Thread.currentThread());
-                return;
-            }
 
             String gameId = drawPoint.gameId();
             String playerId = drawPoint.playerId();
@@ -66,12 +60,10 @@ public class DisconnectCommand implements SquiggleCommand {
                     .gameId(gameId)
                     .build();
 
-            sessions.remove(session);
-
             try {
-                messageService.sendInfoToSessions(sessions, exitDrawPoint.toJson());
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                sendToOtherSessions(session, exitDrawPoint, gameRepository, messageService);
+            } catch (IllegalStateException e) {
+                log.warn("No sessions found for game id {} on thread {}: {}", exitDrawPoint.gameId(), Thread.currentThread(), e.getMessage());
             }
         }
     }
