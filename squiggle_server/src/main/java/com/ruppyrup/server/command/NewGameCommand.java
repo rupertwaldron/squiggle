@@ -45,9 +45,10 @@ public class NewGameCommand implements SquiggleCommand {
         }
 
         try {
-            messageService.sendInfoToSessions(List.of(session), drawPointToSend.toJson());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            sendBackToSession(session, drawPointToSend, gameRepository, messageService);
+//            messageService.sendInfoToSessions(List.of(session), drawPointToSend.toJson());
+        } catch (IllegalStateException e) {
+            log.warn("No sessions found for game id {} on thread {}: {}", drawPoint.gameId(), Thread.currentThread(), e.getMessage());
         }
     }
 }

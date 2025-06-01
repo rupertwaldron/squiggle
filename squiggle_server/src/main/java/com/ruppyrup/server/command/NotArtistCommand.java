@@ -35,21 +35,15 @@ public class NotArtistCommand implements SquiggleCommand {
             log.info("Word repository is not set {} on thread {}", drawPoint, Thread.currentThread());
             return;
         }
-        List<WebSocketSession> sessions = getGameSessions(drawPoint, gameRepository);
-
-        if (sessions.isEmpty()) {
-            log.warn("No sessions found for game id {} on thread {}", drawPoint.gameId(), Thread.currentThread());
-            return;
-        }
 
         if (guessWord.getGuessWord().equalsIgnoreCase(drawPoint.guessWord())) {
-            handleWinner(drawPoint, sessions, guessWord);
+            handleWinner(drawPoint, guessWord);
         } else {
-            handleRetry(drawPoint, sessions, guessWord);
+            handleRetry(drawPoint, guessWord);
         }
     }
 
-    private void handleRetry(DrawPoint drawPoint, List<WebSocketSession> sessions, GuessWord guessWord) {
+    private void handleRetry(DrawPoint drawPoint, GuessWord guessWord) {
         guessWord.incrementGuessCount();
         if (guessWord.getGuessCount() >= revealTriggerPoint) {
             log.info("Reveal another letter {} on thread {}", drawPoint, Thread.currentThread());
@@ -65,15 +59,15 @@ public class NotArtistCommand implements SquiggleCommand {
                     .build();
 
             try {
-                messageService.sendInfoToSessions(sessions, drawPointToSend.toJson());
+                sendToAllSessions(drawPointToSend, gameRepository, messageService);
                 guessWord.setGuessCount(0);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+            } catch (IllegalStateException e) {
+                log.warn("No sessions found for game id {} on thread {}: {}", drawPoint.gameId(), Thread.currentThread(), e.getMessage());
             }
         }
     }
 
-    private void handleWinner(DrawPoint drawPoint, List<WebSocketSession> sessions, GuessWord guessWord) {
+    private void handleWinner(DrawPoint drawPoint, GuessWord guessWord) {
         log.info("Correct guess {} on thread {}", drawPoint, Thread.currentThread());
         DrawPoint winnerDrawPoint = DrawPoint.builder()
                 .action("winner")
@@ -83,10 +77,10 @@ public class NotArtistCommand implements SquiggleCommand {
                 .build();
 
         try {
-            messageService.sendInfoToSessions(sessions, winnerDrawPoint.toJson());
+            sendToAllSessions(winnerDrawPoint, gameRepository, messageService);
             guessWord.reset();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } catch (IllegalStateException e) {
+            log.warn("No sessions found for game id {} on thread {}: {}", drawPoint.gameId(), Thread.currentThread(), e.getMessage());
         }
     }
 }

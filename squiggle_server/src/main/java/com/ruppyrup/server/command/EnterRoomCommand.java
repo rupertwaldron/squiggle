@@ -38,7 +38,7 @@ public class EnterRoomCommand implements SquiggleCommand {
             DrawPoint invalid = drawPointToSend.toBuilder()
                     .gameId("Invalid")
                     .build();
-            sendToSender(session, invalid);
+            sendBackToSession(session, invalid, gameRepository, messageService);
             return;
         }
 
@@ -46,16 +46,8 @@ public class EnterRoomCommand implements SquiggleCommand {
 
         gameRepository.addPlayerToGame(gameId, newPlayer);
 
-        sendToSender(session, drawPointToSend);
+        sendBackToSession(session, drawPointToSend, gameRepository, messageService);
 
         log.info("Player with Id {} entered game with Id {} on thread {}", playerId, gameId, Thread.currentThread());
-    }
-
-    private void sendToSender(WebSocketSession session, DrawPoint drawPointToSend) {
-        try {
-            messageService.sendInfoToSessions(List.of(session), drawPointToSend.toJson());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
