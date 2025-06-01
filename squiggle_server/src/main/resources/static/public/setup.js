@@ -10,6 +10,7 @@ const playButton = document.getElementById('playGame');
 const letterBoxes = document.getElementById("letter-boxes");
 const playerIdInput = document.getElementById('playerText');
 const gameLinkInput = document.getElementById('gameLink');
+const playerList = document.getElementById('player-list');
 const ctx = canvas.getContext('2d');
 const winnerImg = new Image();
 winnerImg.src = 'images/winner.png';
@@ -113,6 +114,17 @@ const updateFillBtn = () => {
         console.log('Fill mode disabled');
     }
 }
+
+const updatePlayerList = players => {
+    playerList.innerHTML = '';
+    if (Array.isArray(players)) {
+        players.forEach(playerId => {
+            const li = document.createElement('li');
+            li.textContent = playerId;
+            playerList.appendChild(li);
+        });
+    }
+};
 
 const updateArtistBtn = () => {
     if (isArtist && guessWord) {
