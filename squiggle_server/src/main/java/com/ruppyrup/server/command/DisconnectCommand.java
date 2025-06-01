@@ -3,6 +3,7 @@ package com.ruppyrup.server.command;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruppyrup.server.model.DrawPoint;
 import com.ruppyrup.server.model.Game;
+import com.ruppyrup.server.model.Player;
 import com.ruppyrup.server.repository.GameRepository;
 import com.ruppyrup.server.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +36,15 @@ public class DisconnectCommand implements SquiggleCommand {
                             .action("exitRoom")
                             .playerId(playerId)
                             .gameId(gameId)
+                            .players(game.getPlayers().stream()
+                                    .map(Player::playerId)
+                                    .toList())
                             .build();
 
                     sessions.remove(session);
 
                     try {
+                        sendToOtherSessions(session, exitDrawPoint, gameRepository, messageService);
                         messageService.sendInfoToSessions(sessions, exitDrawPoint.toJson());
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
@@ -58,6 +63,9 @@ public class DisconnectCommand implements SquiggleCommand {
                     .action("exitRoom")
                     .playerId(playerId)
                     .gameId(gameId)
+                    .players(game.getPlayers().stream()
+                            .map(Player::playerId)
+                            .toList())
                     .build();
 
             try {

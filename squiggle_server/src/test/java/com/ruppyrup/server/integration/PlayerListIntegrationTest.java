@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
@@ -32,7 +31,7 @@ import static org.awaitility.Awaitility.await;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"reveal.count=2"})
 @ExtendWith(LoggingExtension.class)
-public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
+public class PlayerListIntegrationTest implements WebSocketClientTrait {
     @Autowired
     private WordRepository wordRepository;
 
@@ -41,6 +40,7 @@ public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
 
     @Value("${reveal.count}")
     private int revealCount;
+
 
     @LocalServerPort
     private int port;
@@ -66,62 +66,74 @@ public class ExitLogisticsIntegrationTest implements WebSocketClientTrait {
     }
 
     @Test
-    void whenSocketClosesPlayerIsRemovedFromGame() throws IOException, InterruptedException {
-        await()
-                .atMost(Duration.ofSeconds(5))
-                .until(() -> !gameRepository.getGames().isEmpty());
-
-        clientEndPoints.get(PLAYER_1).getUserSession().close(new CloseReason(NORMAL_CLOSURE, "Remove Player Test"));
-        clientEndPoints.remove(PLAYER_1);
-
-        await()
-                .atMost(Duration.ofSeconds(5))
-                .until(() -> gameRepository.getGames().getFirst().getPlayers().size() == 1);
+    void allPlayersReceivePlayerListWhenNewPlayerEnters() throws JsonProcessingException {
+        connectWebsocketClient(port, PLAYER_3);
 
         DrawPoint drawPoint = DrawPoint.builder()
-                .action("exitRoom")
-                .playerId(PLAYER_1)
-                .gameId(GAME_1)
-                .players(List.of(PLAYER_2))
-                .build();
-
-        await()
-                .atMost(Duration.ofSeconds(10))
-                .until(() -> !recievedMessages.isEmpty());
-
-        DrawPoint received = getMessage(recievedMessages.poll());
-
-        assertThat(received)
-                .usingRecursiveComparison()
-                .isEqualTo(drawPoint);
-    }
-
-    @Test
-    void whenPlayerChoosesToLeaveTheGame() throws IOException, InterruptedException {
-        DrawPoint drawPoint = DrawPoint.builder()
-                .action("exitRoom")
-                .playerId(PLAYER_1)
+                .action("enterRoom")
+                .playerId(PLAYER_3)
                 .gameId(GAME_1)
                 .build();
 
         String message = mapper.writeValueAsString(drawPoint);
-        clientEndPoints.get(PLAYER_1).sendMessage(message);
+        clientEndPoints.get(PLAYER_3).sendMessage(message);
 
         await()
                 .atMost(Duration.ofSeconds(10))
-                .until(() -> !recievedMessages.isEmpty());
+                .until(() -> recievedMessages.size() == 3);
+
+        DrawPoint expecteddrawPoint = DrawPoint.builder()
+                .action("enterRoom")
+                .playerId(PLAYER_3)
+                .gameId(GAME_1)
+                .players(List.of(PLAYER_1, PLAYER_2, PLAYER_3))
+                .build();
 
         DrawPoint received = getMessage(recievedMessages.poll());
 
-        DrawPoint expectedDrawPoint = DrawPoint.builder()
+        assertThat(received)
+                .usingRecursiveComparison()
+                .ignoringCollectionOrder()
+                .isEqualTo(expecteddrawPoint);
+
+
+        assertThat(gameRepository.getGameById(GAME_1).getPlayers())
+                .extracting("playerId")
+                .containsExactlyInAnyOrder(PLAYER_1, PLAYER_2, PLAYER_3);
+    }
+
+    @Test
+    void allPlayersReceivePlayerListWhenPlayerLeavesGame() throws JsonProcessingException {
+        DrawPoint drawPoint = DrawPoint.builder()
                 .action("exitRoom")
-                .playerId(PLAYER_1)
+                .playerId(PLAYER_2)
                 .gameId(GAME_1)
-                .players(List.of(PLAYER_2))
                 .build();
+
+        String message = mapper.writeValueAsString(drawPoint);
+        clientEndPoints.get(PLAYER_2).sendMessage(message);
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .until(() -> recievedMessages.size() == 1);
+
+        DrawPoint expecteddrawPoint = DrawPoint.builder()
+                .action("exitRoom")
+                .playerId(PLAYER_2)
+                .gameId(GAME_1)
+                .players(List.of(PLAYER_1))
+                .build();
+
+        DrawPoint received = getMessage(recievedMessages.poll());
 
         assertThat(received)
                 .usingRecursiveComparison()
-                .isEqualTo(expectedDrawPoint);
+                .ignoringCollectionOrder()
+                .isEqualTo(expecteddrawPoint);
+
+
+        assertThat(gameRepository.getGameById(GAME_1).getPlayers())
+                .extracting("playerId")
+                .containsExactlyInAnyOrder(PLAYER_1);
     }
 }

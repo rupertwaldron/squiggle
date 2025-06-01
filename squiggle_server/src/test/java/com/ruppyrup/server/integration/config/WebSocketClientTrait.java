@@ -80,8 +80,6 @@ public interface WebSocketClientTrait {
                 .atMost(Duration.ofSeconds(10))
                 .until(() -> !recievedMessages.isEmpty());
 
-        assertThat(recievedMessages.size()).isEqualTo(2);
-        recievedMessages.remove();
-        recievedMessages.remove();
+        recievedMessages.clear();
     }
 }

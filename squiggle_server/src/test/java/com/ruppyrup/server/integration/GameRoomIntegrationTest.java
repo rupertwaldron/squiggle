@@ -94,9 +94,13 @@ public class GameRoomIntegrationTest implements WebSocketClientTrait {
 
         DrawPoint received = getMessage(recievedMessages.poll());
 
+        DrawPoint expectedDrawPoint = drawPoint.toBuilder()
+                .players(List.of(PLAYER_1))
+                .build();
+
         assertThat(received)
                 .usingRecursiveComparison()
-                .isEqualTo(drawPoint);
+                .isEqualTo(expectedDrawPoint);
 
         List<String> playerIds = game.getPlayers().stream()
                 .map(Player::playerId)

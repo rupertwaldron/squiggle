@@ -46,7 +46,13 @@ public class EnterRoomCommand implements SquiggleCommand {
 
         gameRepository.addPlayerToGame(gameId, newPlayer);
 
-        sendBackToSession(session, drawPointToSend, gameRepository, messageService);
+        drawPointToSend = drawPointToSend.toBuilder()
+                .players(gameRepository.getGameById(gameId).getPlayers().stream()
+                        .map(Player::playerId)
+                        .toList())
+                .build();
+
+        sendToAllSessions( drawPointToSend, gameRepository, messageService);
 
         log.info("Player with Id {} entered game with Id {} on thread {}", playerId, gameId, Thread.currentThread());
     }
