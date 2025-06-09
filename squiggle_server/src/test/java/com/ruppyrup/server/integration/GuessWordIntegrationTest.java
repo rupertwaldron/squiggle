@@ -255,7 +255,6 @@ public class GuessWordIntegrationTest implements WebSocketClientTrait {
                 .isEqualTo(expected);
     }
 
-    //todo fix this test on word repository - use map for clientEndpoints
     @Test
     void serverReceivesTwoGuessWordsForDifferentGamesWhenArtistIsPicked() throws JsonProcessingException, InterruptedException {
 
